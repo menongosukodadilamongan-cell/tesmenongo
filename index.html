@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CAT Desa - Sistem Ujian Perangkat Desa</title>
+    <title>CBT Pro Desa - Sistem Ujian Perangkat Desa</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Feather Icons (sebagai pengganti Lucide di HTML murni) -->
+    <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
@@ -15,12 +15,27 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* CSS Khusus Cetak Laporan Detail Peserta & Rekap */
+        @media print {
+            body { background: white !important; font-size: 12px; }
+            #sidebar, header, .no-print, #toast, .modal-backdrop { display: none !important; }
+            main { padding: 0 !important; margin: 0 !important; overflow: visible !important; }
+            .print-area { display: block !important; width: 100% !important; margin: 0 !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+            .print-area table { width: 100% !important; border-collapse: collapse !important; font-size: 11px; }
+            .print-area th, .print-area td { border: 1px solid #334155 !important; color: #0f172a !important; padding: 4px 8px !important; }
+            .print-page-break { page-break-before: always; }
+            /* Khusus Modal Print Detail */
+            body.printing-modal > *:not(#modal-detail-jawaban) { display: none !important; }
+            #modal-detail-jawaban { position: relative !important; top: 0 !important; left: 0 !important; width: 100% !important; height: auto !important; transform: none !important; box-shadow: none !important; background: white !important; }
+            #modal-detail-jawaban .overflow-y-auto { overflow: visible !important; max-height: none !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 h-screen flex overflow-hidden">
 
     <!-- Toast Notification -->
-    <div id="toast" class="fixed top-4 right-4 z-50 transform transition-all duration-300 translate-x-full opacity-0">
+    <div id="toast" class="fixed top-4 right-4 z-50 transform transition-all duration-300 translate-x-full opacity-0 no-print">
         <div class="bg-emerald-50 text-emerald-700 border border-emerald-100 p-4 rounded-xl shadow-lg flex items-center gap-3">
             <i data-feather="check-circle" class="w-5 h-5 text-emerald-500"></i>
             <span id="toast-message" class="text-sm font-bold">Berhasil!</span>
@@ -28,131 +43,126 @@
     </div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-64 bg-emerald-900 text-slate-300 flex flex-col flex-shrink-0 transition-all z-40 fixed md:relative h-full">
-        <div class="h-20 flex items-center justify-between px-6 bg-emerald-950 sticky top-0 z-10 border-b border-emerald-800">
+    <aside id="sidebar" class="w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 transition-all z-40 fixed md:relative h-full">
+        <div class="h-20 flex items-center justify-between px-6 bg-slate-950 sticky top-0 z-10 border-b border-slate-800">
             <div class="flex items-center gap-3">
-                <div class="bg-white p-1.5 rounded-lg">
-                    <i data-feather="award" class="w-6 h-6 text-emerald-700"></i>
+                <div class="bg-emerald-600 p-1.5 rounded-lg shadow-lg shadow-emerald-900/50">
+                    <i data-feather="monitor" class="w-6 h-6 text-white"></i>
                 </div>
                 <div>
-                    <h1 class="text-white font-bold text-lg tracking-wide leading-tight">CAT Desa</h1>
-                    <p class="text-emerald-400 text-[10px] uppercase tracking-wider">Computer Assisted Test</p>
+                    <h1 class="text-white font-black text-lg tracking-wide leading-tight">CBT<span class="text-emerald-500">PRO</span></h1>
+                    <p class="text-slate-400 text-[10px] uppercase tracking-wider font-bold">Pemerintah Desa</p>
                 </div>
             </div>
-            <button class="md:hidden text-emerald-400 hover:text-white" onclick="toggleSidebar()">
+            <button class="md:hidden text-slate-400 hover:text-white" onclick="toggleSidebar()">
                 <i data-feather="x" class="w-5 h-5"></i>
             </button>
         </div>
 
         <nav class="p-4 flex-1 mt-2 flex flex-col gap-1.5 overflow-y-auto">
-            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 bg-emerald-800 text-white shadow-inner border border-emerald-700">
-                <i data-feather="grid" class="w-5 h-5"></i> Dashboard & Setting
+            <p class="px-2 text-[10px] font-black text-slate-500 mb-1 uppercase tracking-wider">Menu Utama</p>
+            <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 bg-emerald-600 text-white shadow-md">
+                <i data-feather="grid" class="w-5 h-5"></i> Dashboard
             </button>
-            <button onclick="switchTab('peserta')" id="nav-peserta" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-emerald-100/70 hover:bg-emerald-800/50 hover:text-white">
+            <button onclick="switchTab('peserta')" id="nav-peserta" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white">
                 <i data-feather="users" class="w-5 h-5"></i> Data Peserta
             </button>
-            <button onclick="switchTab('materi')" id="nav-materi" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-emerald-100/70 hover:bg-emerald-800/50 hover:text-white">
-                <i data-feather="file-text" class="w-5 h-5"></i> Materi & Bank Soal
+            <button onclick="switchTab('materi')" id="nav-materi" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white">
+                <i data-feather="database" class="w-5 h-5"></i> Bank Soal
             </button>
-            <button onclick="switchTab('jadwal')" id="nav-jadwal" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-emerald-100/70 hover:bg-emerald-800/50 hover:text-white">
+            
+            <p class="px-2 text-[10px] font-black text-slate-500 mb-1 mt-4 uppercase tracking-wider">Pelaksanaan Ujian</p>
+            <button onclick="switchTab('jadwal')" id="nav-jadwal" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white">
                 <i data-feather="calendar" class="w-5 h-5"></i> Jadwal Ujian
             </button>
-            <button onclick="switchTab('status')" id="nav-status" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-emerald-100/70 hover:bg-emerald-800/50 hover:text-white">
-                <i data-feather="activity" class="w-5 h-5"></i> Status Ujian
+            <button onclick="switchTab('status')" id="nav-status" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white relative">
+                <i data-feather="activity" class="w-5 h-5"></i> Monitoring
+                <span id="badge-live" class="hidden absolute right-3 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
             </button>
-            <button onclick="switchTab('hasil')" id="nav-hasil" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-emerald-100/70 hover:bg-emerald-800/50 hover:text-white">
-                <i data-feather="award" class="w-5 h-5"></i> Hasil Seleksi
+            <button onclick="switchTab('hasil')" id="nav-hasil" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white">
+                <i data-feather="award" class="w-5 h-5"></i> Laporan & Hasil
             </button>
         </nav>
-        <div class="p-4 border-t border-emerald-800 bg-emerald-950">
+        <div class="p-4 border-t border-slate-800 bg-slate-950">
             <div id="auth-status" class="text-xs text-center mb-2 text-emerald-400 font-medium">Menghubungkan Database...</div>
         </div>
     </aside>
 
-    <!-- OVERLAY MOBILE -->
-    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden"></div>
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden no-print"></div>
 
     <!-- MAIN CONTENT -->
-    <main class="flex-1 flex flex-col h-screen relative w-full overflow-hidden">
+    <main class="flex-1 flex flex-col h-screen relative w-full overflow-hidden bg-[#f8fafc]">
         <!-- HEADER -->
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-10 flex-shrink-0">
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-10 flex-shrink-0 shadow-sm no-print">
             <div class="flex items-center gap-4">
                 <button onclick="toggleSidebar()" class="p-2 rounded-md hover:bg-slate-100 text-slate-500">
                     <i data-feather="menu" class="w-5 h-5"></i>
                 </button>
-                <div class="hidden md:block font-bold text-slate-700" id="header-lembaga-nama">
-                    Pemerintah Desa (Memuat...)
+                <div class="hidden md:flex items-center gap-2 font-bold text-slate-700 bg-slate-100 px-4 py-1.5 rounded-full text-sm">
+                    <i data-feather="map-pin" class="w-4 h-4 text-emerald-600"></i>
+                    <span id="header-lembaga-nama">Pemerintah Desa (Memuat...)</span>
                 </div>
             </div>
-            <div class="flex items-center gap-3 border-l border-slate-200 pl-4">
+            <div class="flex items-center gap-3">
                 <div class="text-right hidden sm:block">
-                    <p class="text-sm font-bold text-slate-700">Panitia Seleksi</p>
-                    <p class="text-xs text-slate-500">Admin</p>
+                    <p class="text-sm font-bold text-slate-800">Panitia Seleksi</p>
+                    <p class="text-xs text-emerald-600 font-bold">Administrator</p>
                 </div>
-                <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold border-2 border-emerald-200">
-                    AD
+                <div class="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold shadow-md shadow-emerald-200">
+                    <i data-feather="user" class="w-5 h-5"></i>
                 </div>
             </div>
         </header>
 
         <!-- CONTENT AREA -->
-        <div class="flex-1 overflow-y-auto p-4 lg:p-8 relative">
+        <div class="flex-1 overflow-y-auto p-4 lg:p-8 relative" id="main-content-area">
 
             <!-- 1. DASHBOARD VIEW -->
-            <div id="view-dashboard" class="tab-content fade-in max-w-5xl mx-auto block">
+            <div id="view-dashboard" class="tab-content fade-in max-w-6xl mx-auto block">
                 <div class="mb-8">
-                    <h2 class="text-2xl font-bold text-slate-800">Dashboard & Pengaturan</h2>
-                    <p class="text-slate-500 text-sm mt-1">Ringkasan sistem dan pengaturan profil panitia penyelenggara.</p>
+                    <h2 class="text-2xl font-black text-slate-800 tracking-tight">Dashboard Utama</h2>
+                    <p class="text-slate-500 text-sm mt-1">Ringkasan sistem CBT Profesional untuk seleksi Perangkat Desa.</p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-5">
-                        <div class="bg-blue-100 text-blue-600 p-4 rounded-xl"><i data-feather="users" class="w-7 h-7"></i></div>
-                        <div>
-                            <p class="text-sm font-bold text-slate-500 mb-1">Total Peserta</p>
-                            <h3 id="stat-peserta" class="text-3xl font-black text-slate-800">0</h3>
-                        </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-4 hover:border-blue-300 transition-colors">
+                        <div class="bg-blue-50 text-blue-600 p-4 rounded-xl"><i data-feather="users" class="w-6 h-6"></i></div>
+                        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Peserta</p><h3 id="stat-peserta" class="text-3xl font-black text-slate-800">0</h3></div>
                     </div>
-                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-5">
-                        <div class="bg-amber-100 text-amber-600 p-4 rounded-xl"><i data-feather="file-text" class="w-7 h-7"></i></div>
-                        <div>
-                            <p class="text-sm font-bold text-slate-500 mb-1">Materi Ujian</p>
-                            <h3 class="text-3xl font-black text-slate-800">2</h3>
-                        </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-4 hover:border-amber-300 transition-colors">
+                        <div class="bg-amber-50 text-amber-600 p-4 rounded-xl"><i data-feather="database" class="w-6 h-6"></i></div>
+                        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Bank Soal</p><h3 id="stat-materi" class="text-3xl font-black text-slate-800">0</h3></div>
                     </div>
-                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-5">
-                        <div class="bg-emerald-100 text-emerald-600 p-4 rounded-xl"><i data-feather="calendar" class="w-7 h-7"></i></div>
-                        <div>
-                            <p class="text-sm font-bold text-slate-500 mb-1">Jadwal Aktif</p>
-                            <h3 class="text-3xl font-black text-slate-800">1</h3>
-                        </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-4 hover:border-purple-300 transition-colors">
+                        <div class="bg-purple-50 text-purple-600 p-4 rounded-xl"><i data-feather="calendar" class="w-6 h-6"></i></div>
+                        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Jadwal</p><h3 id="stat-jadwal-total" class="text-3xl font-black text-slate-800">0</h3></div>
+                    </div>
+                    <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex items-center gap-4 hover:border-emerald-300 transition-colors">
+                        <div class="bg-emerald-50 text-emerald-600 p-4 rounded-xl"><i data-feather="activity" class="w-6 h-6 animate-pulse"></i></div>
+                        <div><p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Jadwal Live</p><h3 id="stat-jadwal-aktif" class="text-3xl font-black text-slate-800">0</h3></div>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
-                        <i data-feather="award" class="w-5 h-5 text-emerald-600"></i>
-                        <h3 class="font-bold text-slate-800">Profil Lembaga / Desa</h3>
+                    <div class="p-5 border-b border-slate-100 bg-slate-50 flex items-center gap-2">
+                        <i data-feather="settings" class="w-5 h-5 text-slate-500"></i>
+                        <h3 class="font-bold text-slate-800">Pengaturan Identitas Penyelenggara (Kop Surat)</h3>
                     </div>
                     <div class="p-6 md:p-8 flex flex-col md:flex-row gap-8">
-                        <div class="flex flex-col items-center gap-3">
-                            <div class="w-32 h-32 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-100 cursor-pointer transition-colors">
-                                <i data-feather="upload" class="w-6 h-6 mb-2"></i>
-                                <span class="text-xs font-medium text-center">Upload<br/>Logo Desa</span>
-                            </div>
-                        </div>
                         <div class="flex-1 space-y-5">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Nama Desa / Lembaga Penyelenggara</label>
-                                <input id="input-lembaga-nama" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Contoh: Pemerintah Desa Srikoyo">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Alamat / Kecamatan</label>
-                                <input id="input-lembaga-kecamatan" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Contoh: Kec. Srikoyo, Kab. Maju Jaya">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Nama Instansi / Lembaga</label>
+                                    <input id="input-lembaga-nama" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Contoh: PANITIA SELEKSI DESA SRIKOYO">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Kecamatan / Kabupaten</label>
+                                    <input id="input-lembaga-kecamatan" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Contoh: Kec. Maju, Kab. Jaya">
+                                </div>
                             </div>
                             <div class="pt-2">
-                                <button onclick="simpanLembaga()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-colors">
-                                    <i data-feather="save" class="w-4 h-4"></i> Simpan Profil
+                                <button onclick="simpanLembaga()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-md transition-all">
+                                    <i data-feather="save" class="w-4 h-4"></i> Simpan Pengaturan
                                 </button>
                             </div>
                         </div>
@@ -161,32 +171,36 @@
             </div>
 
             <!-- 2. DATA PESERTA VIEW -->
-            <div id="view-peserta" class="tab-content fade-in max-w-5xl mx-auto hidden">
+            <div id="view-peserta" class="tab-content fade-in max-w-6xl mx-auto hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-800">Data Peserta Ujian</h2>
-                        <p class="text-slate-500 text-sm mt-1">Kelola calon perangkat desa yang akan mengikuti seleksi.</p>
+                        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Data Peserta Ujian</h2>
+                        <p class="text-slate-500 text-sm mt-1">Kelola biodata peserta berdasarkan Formasi Jabatan.</p>
                     </div>
-                    <button onclick="openModalPeserta()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-sm transition-colors">
-                        <i data-feather="plus" class="w-4 h-4"></i> Tambah Peserta
+                    <button onclick="openModalPeserta()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md transition-all">
+                        <i data-feather="user-plus" class="w-4 h-4"></i> Tambah Peserta
                     </button>
                 </div>
 
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div class="p-4 border-b border-slate-100 flex gap-4 bg-slate-50/50">
-                        <div class="relative flex-1">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[calc(100vh-200px)]">
+                    <div class="p-4 border-b border-slate-100 flex flex-wrap gap-4 bg-slate-50">
+                        <div class="relative flex-1 min-w-[200px]">
                             <i data-feather="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                            <input type="text" id="search-peserta" oninput="renderPeserta()" placeholder="Cari NIK atau Nama..." class="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <input type="text" id="search-peserta" oninput="renderPeserta()" placeholder="Cari NIK, No Peserta, Nama..." class="w-full pl-9 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
                         </div>
+                        <select id="filter-peserta-formasi" onchange="renderPeserta()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm outline-none font-medium bg-white focus:ring-2 focus:ring-emerald-500">
+                            <option value="Semua">Semua Formasi</option>
+                            <!-- Diisi via JS -->
+                        </select>
                     </div>
-                    <div class="overflow-x-auto">
+                    <div class="overflow-auto flex-1">
                         <table class="w-full text-sm text-left text-slate-600">
-                            <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                            <thead class="text-[11px] text-slate-500 uppercase bg-slate-100 border-b border-slate-200 sticky top-0 z-10">
                                 <tr>
-                                    <th class="px-6 py-4 font-bold">NO. PESERTA</th>
-                                    <th class="px-6 py-4 font-bold">NAMA LENGKAP</th>
-                                    <th class="px-6 py-4 font-bold">FORMASI JABATAN</th>
-                                    <th class="px-6 py-4 font-bold text-center">AKSI</th>
+                                    <th class="px-5 py-4 font-black w-32">NO PESERTA</th>
+                                    <th class="px-5 py-4 font-black">BIODATA PESERTA</th>
+                                    <th class="px-5 py-4 font-black text-center">GRUP / FORMASI</th>
+                                    <th class="px-5 py-4 font-black text-center w-28">AKSI</th>
                                 </tr>
                             </thead>
                             <tbody id="tbody-peserta">
@@ -197,120 +211,495 @@
                 </div>
             </div>
 
-            <!-- 3. MATERI VIEW (MOCKUP STATIS) -->
-            <div id="view-materi" class="tab-content fade-in max-w-5xl mx-auto hidden">
+            <!-- 3. MATERI & BANK SOAL VIEW -->
+            <div id="view-materi" class="tab-content fade-in max-w-6xl mx-auto hidden">
+                <div id="materi-list-section">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <div>
+                            <h2 class="text-2xl font-black text-slate-800 tracking-tight">Bank Soal & Materi</h2>
+                            <p class="text-slate-500 text-sm mt-1">Buat paket soal yang dikelompokkan berdasarkan Formasi Jabatan.</p>
+                        </div>
+                        <button onclick="openModalMateri()" class="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 shadow-md transition-all">
+                            <i data-feather="plus" class="w-4 h-4"></i> Buat Bank Soal Baru
+                        </button>
+                    </div>
+                    <div id="container-materi" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Data Materi -->
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW: KELOLA SOAL (Tersembunyi secara default) -->
+                <div id="materi-soal-section" class="hidden h-full flex-col">
+                    <div class="flex items-center gap-4 mb-6 border-b border-slate-200 pb-4">
+                        <button onclick="tutupKelolaSoal()" class="p-2 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 shadow-sm"><i data-feather="arrow-left" class="w-5 h-5 text-slate-600"></i></button>
+                        <div>
+                            <h2 class="text-xl font-black text-slate-800" id="header-kelola-soal-nama">Bank Soal: -</h2>
+                            <p class="text-emerald-600 text-sm font-bold mt-0.5" id="header-kelola-soal-formasi">Formasi: -</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[calc(100vh-220px)]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center gap-4">
+                            <h3 class="font-bold text-slate-700">Daftar Soal (<span id="count-soal">0</span>)</h3>
+                            <div class="flex gap-2">
+                                <button onclick="downloadTemplateExcel()" class="flex items-center gap-2 bg-white border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-bold text-xs hover:bg-slate-50 shadow-sm">
+                                    <i data-feather="download" class="w-3.5 h-3.5"></i> Format Excel
+                                </button>
+                                <button onclick="openModalImportSoal()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-bold text-xs hover:bg-blue-700 shadow-sm">
+                                    <i data-feather="upload" class="w-3.5 h-3.5"></i> Import Paste Excel
+                                </button>
+                            </div>
+                        </div>
+                        <div class="overflow-y-auto flex-1 p-4 bg-slate-50" id="container-list-soal">
+                            <!-- List soal render here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. JADWAL VIEW -->
+            <div id="view-jadwal" class="tab-content fade-in max-w-6xl mx-auto hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                     <div>
-                        <h2 class="text-2xl font-bold text-slate-800">Materi & Bank Soal</h2>
-                        <p class="text-slate-500 text-sm mt-1">Kelola topik ujian dan daftar pertanyaan (Pilihan Ganda).</p>
+                        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Jadwal & Sesi Ujian</h2>
+                        <p class="text-slate-500 text-sm mt-1">Atur jadwal, token, dan sinkronisasi Bank Soal dengan Peserta.</p>
                     </div>
-                    <button class="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm">
-                        <i data-feather="plus" class="w-4 h-4"></i> Buat Materi
+                    <button onclick="openModalJadwal()" class="flex items-center gap-2 bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-emerald-700 shadow-md transition-all">
+                        <i data-feather="calendar" class="w-4 h-4"></i> Buat Jadwal / Sesi
                     </button>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="bg-blue-100 text-blue-700 p-3 rounded-xl"><i data-feather="file-text" class="w-6 h-6"></i></div>
-                            <span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">Aktif</span>
-                        </div>
-                        <h3 class="text-lg font-bold text-slate-800 mb-1">Pengetahuan Umum Pemerintahan</h3>
-                        <p class="text-sm text-slate-500 mb-6">Materi terkait UUD 1945, Pancasila, dan UU Desa No. 6 Tahun 2014.</p>
-                        <div class="flex justify-between items-center border-t border-slate-100 pt-4">
-                            <div class="text-sm font-bold text-slate-700">50 Soal</div>
-                            <button class="text-sm font-bold text-emerald-600">Kelola Soal &rarr;</button>
-                        </div>
+                
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-slate-600">
+                            <thead class="text-[11px] text-slate-500 uppercase bg-slate-100 border-b border-slate-200">
+                                <tr>
+                                    <th class="px-5 py-4 font-black">NAMA SESI</th>
+                                    <th class="px-5 py-4 font-black">GRUP FORMASI</th>
+                                    <th class="px-5 py-4 font-black">WAKTU UJIAN</th>
+                                    <th class="px-5 py-4 font-black text-center">TOKEN</th>
+                                    <th class="px-5 py-4 font-black text-center">STATUS</th>
+                                    <th class="px-5 py-4 font-black text-center">AKSI</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-jadwal">
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- 4. JADWAL VIEW (MOCKUP STATIS) -->
-            <div id="view-jadwal" class="tab-content fade-in max-w-5xl mx-auto hidden">
-                <div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">Jadwal Ujian</h2></div>
-                <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-                    <i data-feather="calendar" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
-                    <p>Fitur pengelolaan jadwal akan terhubung ke form materi nanti.</p>
-                </div>
-            </div>
-
-            <!-- 5. STATUS VIEW (MOCKUP STATIS) -->
-            <div id="view-status" class="tab-content fade-in max-w-5xl mx-auto hidden">
-                <div class="mb-6"><h2 class="text-2xl font-bold text-slate-800">Status Ujian</h2></div>
-                <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
-                    <i data-feather="activity" class="w-12 h-12 mx-auto mb-3 text-slate-300"></i>
-                    <p>Fitur live monitoring peserta yang sedang ujian.</p>
-                </div>
-            </div>
-
-            <!-- 6. HASIL VIEW (MOCKUP STATIS TAPI MENGAMBIL NAMA DESA DARI DATABASE) -->
-            <div id="view-hasil" class="tab-content fade-in max-w-5xl mx-auto hidden">
+            <!-- 5. STATUS VIEW (MONITORING & SIMULATOR) -->
+            <div id="view-status" class="tab-content fade-in max-w-6xl mx-auto hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                    <h2 class="text-2xl font-bold text-slate-800">Hasil Seleksi Ujian</h2>
-                    <button class="flex items-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm">
-                        <i data-feather="printer" class="w-4 h-4"></i> Cetak Berita Acara
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-800 tracking-tight">Monitoring & Token CBT</h2>
+                        <p class="text-slate-500 text-sm mt-1">Pantau peserta yang sedang login dan simulasikan pengerjaan soal (Auto-Grade).</p>
+                    </div>
+                    <button onclick="simulasikanUjianSelesai()" class="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-sm hover:bg-blue-700 shadow-lg shadow-blue-600/30 transition-all border border-blue-500 animate-pulse">
+                        <i data-feather="cpu" class="w-5 h-5"></i> Simulasikan Ujian Selesai (Auto-Score)
                     </button>
                 </div>
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6">
-                    <div class="text-center border-b-2 border-slate-800 pb-4 mb-6">
-                        <h3 class="font-bold text-lg uppercase">PANITIA SELEKSI PENGANGKATAN PERANGKAT DESA</h3>
-                        <h2 class="font-black text-xl uppercase" id="kop-nama-desa">PEMERINTAH DESA ...</h2>
-                        <p class="text-sm" id="kop-kecamatan">Kecamatan ...</p>
+
+                <div id="status-no-active" class="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-500 mb-6 shadow-sm">
+                    <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4"><i data-feather="monitor" class="w-10 h-10 text-slate-400"></i></div>
+                    <h3 class="text-xl font-bold text-slate-700">Tidak ada ujian yang sedang AKTIF</h3>
+                    <p class="text-sm mt-2 max-w-md mx-auto">Masuk ke menu Jadwal Ujian dan ubah status salah satu sesi menjadi "Aktif" untuk memonitor jalannya ujian di sini.</p>
+                </div>
+
+                <div id="status-active-container" class="hidden">
+                    <!-- Token Banner -->
+                    <div class="bg-slate-900 text-white p-6 rounded-3xl mb-6 flex flex-col md:flex-row justify-between items-center shadow-xl border border-slate-700 gap-6 relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 opacity-10"><i data-feather="activity" class="w-64 h-64"></i></div>
+                        <div class="relative z-10">
+                            <span class="inline-flex items-center gap-2 bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-red-500/30 mb-3">
+                                <span class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span> Live Session
+                            </span>
+                            <h3 class="text-2xl font-black" id="status-nama-jadwal">Nama Jadwal</h3>
+                            <div class="flex gap-4 mt-2 text-sm font-medium text-slate-400">
+                                <span class="flex items-center gap-1"><i data-feather="users" class="w-4 h-4"></i> Formasi: <span id="status-nama-formasi" class="text-white"></span></span>
+                                <span class="flex items-center gap-1"><i data-feather="database" class="w-4 h-4"></i> <span id="status-nama-materi" class="text-white"></span></span>
+                            </div>
+                        </div>
+                        <div class="relative z-10 bg-slate-800 p-4 rounded-2xl border border-slate-700 text-center min-w-[200px]">
+                            <p class="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-1">Token Ujian Saat Ini</p>
+                            <h2 class="text-4xl font-mono font-black text-emerald-400 tracking-widest" id="status-token">------</h2>
+                            <button onclick="alert('Fitur Regenerate Token Aktif')" class="mt-3 text-[11px] text-slate-400 hover:text-white underline">Regenerate (Refresh)</button>
+                        </div>
                     </div>
-                    <table class="w-full text-sm text-left border-collapse border border-slate-300">
-                        <thead class="bg-slate-100">
-                            <tr>
-                                <th class="border border-slate-300 px-4 py-3 font-bold text-center w-12">NO</th>
-                                <th class="border border-slate-300 px-4 py-3 font-bold">NAMA PESERTA</th>
-                                <th class="border border-slate-300 px-4 py-3 font-bold text-center">NILAI AKHIR</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="border border-slate-300 px-4 py-3 text-center">1</td>
-                                <td class="border border-slate-300 px-4 py-3 font-bold">Ahmad Subagyo</td>
-                                <td class="border border-slate-300 px-4 py-3 text-center font-black text-lg bg-emerald-50">84.00</td>
-                            </tr>
-                        </tbody>
-                    </table>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[500px]">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+                            <h4 class="font-bold text-slate-700">Monitoring Peserta (<span id="status-count-peserta">0</span>)</h4>
+                            <div class="text-xs font-bold text-slate-500"><i data-feather="info" class="w-3 h-3 inline"></i> Data Real-time</div>
+                        </div>
+                        <div class="overflow-auto flex-1">
+                            <table class="w-full text-sm text-left text-slate-600">
+                                <thead class="text-[11px] text-slate-500 uppercase bg-slate-100 border-b border-slate-200 sticky top-0">
+                                    <tr>
+                                        <th class="px-5 py-3 font-black">NO PESERTA</th>
+                                        <th class="px-5 py-3 font-black">NAMA PESERTA</th>
+                                        <th class="px-5 py-3 font-black text-center">STATUS CBT</th>
+                                        <th class="px-5 py-3 font-black text-center">AKSI PANITIA</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-status-peserta">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. HASIL VIEW (PRINTABLE LHE) -->
+            <div id="view-hasil" class="tab-content fade-in max-w-6xl mx-auto hidden">
+                <div id="hasil-rekap-section" class="no-print">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                        <div>
+                            <h2 class="text-2xl font-black text-slate-800 tracking-tight">Rekap Hasil & Cetak LHE</h2>
+                            <p class="text-slate-500 text-sm mt-1">Lihat peringkat nilai atau cetak Lembar Hasil Evaluasi (LHE) per peserta.</p>
+                        </div>
+                        <button onclick="window.print()" class="flex items-center gap-2 bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-slate-900 shadow-md">
+                            <i data-feather="printer" class="w-4 h-4"></i> Cetak Rekapitulasi (PDF)
+                        </button>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-6 md:p-8 print-area mb-8">
+                        <!-- KOP SURAT (Khusus Print) -->
+                        <div class="text-center border-b-4 border-slate-800 pb-5 mb-8 hidden print:block">
+                            <h3 class="font-bold text-lg uppercase tracking-wide">PANITIA SELEKSI PENGANGKATAN PERANGKAT DESA</h3>
+                            <h2 class="font-black text-2xl uppercase mt-1 text-slate-900" id="kop-nama-desa-1">PEMERINTAH DESA</h2>
+                            <p class="text-md mt-1 text-slate-700" id="kop-kecamatan-1">Kecamatan</p>
+                        </div>
+
+                        <div class="mb-6 flex flex-col md:flex-row justify-between items-end gap-4">
+                            <div>
+                                <h4 class="font-black text-slate-800 text-xl uppercase underline decoration-emerald-500 decoration-4 underline-offset-4">DAFTAR NILAI AKHIR (RANKING)</h4>
+                                <p class="text-sm mt-2 text-slate-600 font-bold" id="laporan-detail">Silakan pilih jadwal untuk melihat hasil.</p>
+                            </div>
+                            <div class="no-print w-full md:w-auto flex gap-2">
+                                <select id="select-hasil-jadwal" onchange="renderHasil()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm outline-none bg-slate-50 font-bold text-slate-700 shadow-sm w-full md:w-72">
+                                    <option value="">-- Pilih Jadwal Ujian --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left border-collapse border border-slate-300">
+                                <thead class="bg-slate-800 text-white print:bg-slate-200 print:text-black">
+                                    <tr>
+                                        <th class="border border-slate-300 px-4 py-3 font-black text-center w-12">Peringkat</th>
+                                        <th class="border border-slate-300 px-4 py-3 font-black">NO PESERTA</th>
+                                        <th class="border border-slate-300 px-4 py-3 font-black">NAMA LENGKAP</th>
+                                        <th class="border border-slate-300 px-4 py-3 font-black text-center w-20">BENAR</th>
+                                        <th class="border border-slate-300 px-4 py-3 font-bold text-center w-20">SALAH</th>
+                                        <th class="border border-slate-300 px-4 py-3 font-bold text-center w-20">KOSONG</th>
+                                        <th class="border border-slate-300 px-4 py-3 font-black text-center w-32 bg-emerald-700 print:bg-emerald-200">SKOR AKHIR</th>
+                                        <th class="border border-slate-300 px-4 py-3 font-bold text-center w-28 no-print">AKSI</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-hasil">
+                                    <tr><td colspan="8" class="text-center p-8 text-slate-500 font-medium bg-slate-50 border border-slate-300">Pilih jadwal ujian terlebih dahulu.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- TTD Khusus Print Rekap -->
+                        <div class="flex justify-end mt-12 pt-8 hidden print:flex">
+                            <div class="text-center w-64">
+                                <p class="mb-20 text-sm">Panitia Seleksi,</p>
+                                <p class="font-bold border-b border-slate-800 inline-block pb-0.5 px-4 uppercase text-slate-900">Ketua Panitia</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
         </div>
     </main>
 
-    <!-- MODAL TAMBAH PESERTA -->
-    <div id="modal-peserta" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 transition-opacity">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
-            <div class="flex justify-between items-center p-5 border-b border-slate-100">
-                <h3 id="modal-title" class="font-bold text-slate-800">Form Data Peserta</h3>
-                <button onclick="closeModalPeserta()" class="text-slate-400 hover:text-slate-600"><i data-feather="x" class="w-5 h-5"></i></button>
+    <!-- ==================== MODALS / FORMS ==================== -->
+
+    <!-- Modal Form Peserta -->
+    <div id="modal-peserta" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 transition-opacity no-print modal-backdrop">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+                <div>
+                    <h3 id="modal-title-peserta" class="font-black text-xl text-slate-800 tracking-tight">Form Biodata Peserta</h3>
+                    <p class="text-xs text-slate-500 mt-1 font-medium">Lengkapi data identitas calon perangkat desa.</p>
+                </div>
+                <button onclick="closeModal('modal-peserta')" class="w-8 h-8 flex items-center justify-center rounded-full bg-slate-200 text-slate-500 hover:bg-red-100 hover:text-red-600 transition-colors"><i data-feather="x" class="w-4 h-4"></i></button>
             </div>
-            <form onsubmit="simpanPeserta(event)" class="p-5 flex flex-col gap-4">
-                <input type="hidden" id="form-peserta-id">
+            <div class="overflow-y-auto p-6 flex-1 bg-white">
+                <form id="formObj-peserta" onsubmit="simpanPeserta(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <input type="hidden" id="form-peserta-id">
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-wide">Pilih Grup / Formasi Jabatan *</label>
+                        <select id="form-formasi" required class="w-full px-4 py-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-emerald-700 bg-emerald-50 outline-none focus:border-emerald-500">
+                            <!-- Diisi via JS -->
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-wide">Nomor Peserta Ujian *</label>
+                        <input id="form-no" required type="text" class="w-full px-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-mono font-bold outline-none focus:border-blue-500 bg-slate-50" placeholder="Contoh: 2604-001" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-wide">NIK (Nomor KTP) *</label>
+                        <input id="form-nik" required type="text" maxlength="16" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500" placeholder="16 Digit NIK" />
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-wide">Nama Lengkap & Gelar *</label>
+                        <input id="form-nama" required type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500 font-bold" placeholder="Contoh: Budi Santoso, S.Kom" />
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-wide">Tempat Lahir</label>
+                        <input id="form-tempat" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500" placeholder="Kota/Kabupaten" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-wide">Tanggal Lahir</label>
+                        <input id="form-tglLahir" type="date" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500" />
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-wide">Jenis Kelamin</label>
+                        <select id="form-jk" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500 bg-white">
+                            <option value="Laki-Laki">Laki-Laki</option>
+                            <option value="Perempuan">Perempuan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-slate-500 mb-1.5 uppercase tracking-wide">Pendidikan Terakhir</label>
+                        <select id="form-pendidikan" class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500 bg-white">
+                            <option value="SMA/SMK/Sederajat">SMA/SMK/Sederajat</option>
+                            <option value="D3">Diploma 3 (D3)</option>
+                            <option value="S1/D4">Strata 1 (S1) / D4</option>
+                            <option value="S2">Strata 2 (S2)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="p-5 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+                <button type="button" onclick="closeModal('modal-peserta')" class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition-colors">Batal</button>
+                <button type="button" onclick="document.getElementById('formObj-peserta').requestSubmit()" class="px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md transition-colors">Simpan Biodata</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Materi (Header) -->
+    <div id="modal-materi" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 transition-opacity no-print modal-backdrop">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+            <div class="flex justify-between items-center p-5 border-b border-slate-100">
+                <h3 id="modal-title-materi" class="font-bold text-slate-800">Setup Bank Soal</h3>
+                <button onclick="closeModal('modal-materi')" class="text-slate-400 hover:text-slate-600"><i data-feather="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="simpanMateri(event)" class="p-6 flex flex-col gap-4">
+                <input type="hidden" id="form-materi-id">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">Nomor Peserta (Otomatis/Manual)</label>
-                    <input id="form-no" required type="text" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono font-bold outline-none focus:border-emerald-500" placeholder="Contoh: 2604-001" />
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">Nama Lengkap & Gelar</label>
-                    <input id="form-nama" required type="text" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-emerald-500" placeholder="Contoh: Budi Santoso, S.Kom" />
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-slate-500 mb-1">Formasi Jabatan</label>
-                    <select id="form-formasi" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:border-emerald-500 bg-white">
-                        <option value="Sekretaris Desa">Sekretaris Desa</option>
-                        <option value="Kaur Keuangan">Kaur Keuangan</option>
-                        <option value="Kaur Tata Usaha & Umum">Kaur Tata Usaha & Umum</option>
-                        <option value="Kasi Pemerintahan">Kasi Pemerintahan</option>
-                        <option value="Kasi Kesejahteraan">Kasi Kesejahteraan</option>
-                        <option value="Kepala Dusun">Kepala Dusun</option>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Dikhususkan Untuk Formasi *</label>
+                    <select id="form-materi-formasi" required class="w-full px-3 py-2.5 border-2 border-slate-200 rounded-xl text-sm font-bold text-emerald-700 outline-none focus:border-emerald-500 bg-emerald-50">
+                        <!-- Diisi via JS -->
                     </select>
                 </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Nama Paket Ujian / Materi *</label>
+                    <input id="form-materi-nama" required type="text" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500 font-bold" placeholder="Contoh: Tes Kemampuan Dasar (TKD)" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1">Deskripsi / Keterangan</label>
+                    <textarea id="form-materi-desc" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500" placeholder="Catatan opsional..."></textarea>
+                </div>
                 <div class="flex justify-end gap-2 mt-4">
-                    <button type="button" onclick="closeModalPeserta()" class="px-4 py-2 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors">Batal</button>
-                    <button type="submit" class="px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors shadow-sm">Simpan Data</button>
+                    <button type="button" onclick="closeModal('modal-materi')" class="px-4 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-sm">Buat Wadah Soal</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Form Jadwal -->
+    <div id="modal-jadwal" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-50 p-4 transition-opacity no-print modal-backdrop">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-50">
+                <h3 id="modal-title-jadwal" class="font-black text-xl text-slate-800">Pengaturan Sesi CBT</h3>
+                <button onclick="closeModal('modal-jadwal')" class="text-slate-400 hover:text-slate-600"><i data-feather="x" class="w-5 h-5"></i></button>
+            </div>
+            <form onsubmit="simpanJadwal(event)" class="p-6 flex flex-col gap-5">
+                <input type="hidden" id="form-jadwal-id">
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Pilih Grup / Formasi Peserta *</label>
+                    <select id="form-jadwal-formasi" required onchange="populateSelectMateriJadwal()" class="w-full px-3 py-3 border-2 border-slate-200 rounded-xl text-sm font-bold text-blue-700 bg-blue-50 outline-none focus:border-blue-500">
+                        <!-- Diisi via JS -->
+                    </select>
+                </div>
+
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Pilih Bank Soal (Materi) *</label>
+                    <select id="form-jadwal-materi" required class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-500 bg-white font-bold text-emerald-700">
+                        <option value="">-- Pilih Formasi Terlebih Dahulu --</option>
+                    </select>
+                    <p class="text-[10px] text-slate-400 mt-1 italic">*Hanya materi yang sesuai dengan Formasi terpilih yang akan muncul.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Nama Sesi Jadwal *</label>
+                    <input id="form-jadwal-nama" required type="text" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500 font-bold" placeholder="Contoh: Sesi 1 Pagi" />
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Tanggal & Waktu</label>
+                        <input id="form-jadwal-tgl" required type="datetime-local" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1.5 uppercase">Durasi (Menit)</label>
+                        <input id="form-jadwal-durasi" required type="number" min="10" max="240" class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-sm outline-none focus:border-blue-500" placeholder="120" />
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 bg-amber-50 p-4 rounded-2xl border border-amber-200">
+                    <div class="flex-1">
+                        <label class="block text-xs font-bold text-amber-700 mb-1 uppercase">Status Aktivasi Sesi</label>
+                        <select id="form-jadwal-status" required class="w-full px-3 py-2 border border-amber-300 rounded-lg text-sm outline-none bg-white font-bold text-amber-900">
+                            <option value="Menunggu">Menunggu Waktu (Draft)</option>
+                            <option value="Aktif">🔴 AKTIF (Live / Sedang Berjalan)</option>
+                            <option value="Selesai">Selesai (Tutup)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-2 border-t border-slate-100 pt-5">
+                    <button type="button" onclick="closeModal('modal-jadwal')" class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl">Batal</button>
+                    <button type="submit" class="px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md">Simpan Pengaturan CBT</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Import Copy-Paste Soal -->
+    <div id="modal-import" class="hidden fixed inset-0 bg-slate-900/70 flex items-center justify-center z-[60] p-4 transition-opacity no-print modal-backdrop">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden transform transition-all flex flex-col h-[90vh]">
+            <div class="flex justify-between items-center p-6 border-b border-slate-100 bg-blue-600 text-white">
+                <div>
+                    <h3 class="font-black text-xl tracking-tight flex items-center gap-2"><i data-feather="upload-cloud"></i> Import Bank Soal Cepat</h3>
+                    <p class="text-xs text-blue-200 mt-1 font-medium">Copy tabel dari Ms. Excel dan Paste ke kotak di bawah.</p>
+                </div>
+                <button onclick="closeModal('modal-import')" class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 hover:bg-red-500 transition-colors"><i data-feather="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-4 bg-slate-50">
+                <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl text-sm text-amber-800">
+                    <p class="font-bold mb-2"><i data-feather="alert-circle" class="w-4 h-4 inline mb-1"></i> Aturan Format Kolom Excel (Wajib Berurutan dari Kiri ke Kanan):</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs font-bold text-center border-collapse bg-white border border-amber-300">
+                            <tr>
+                                <th class="border border-amber-300 p-2">Kolom 1</th>
+                                <th class="border border-amber-300 p-2">Kolom 2</th>
+                                <th class="border border-amber-300 p-2">Kolom 3</th>
+                                <th class="border border-amber-300 p-2">Kolom 4</th>
+                                <th class="border border-amber-300 p-2">Kolom 5</th>
+                                <th class="border border-amber-300 p-2">Kolom 6</th>
+                                <th class="border border-amber-300 p-2 bg-emerald-100">Kolom 7 (KUNCI)</th>
+                            </tr>
+                            <tr class="text-slate-600 font-normal">
+                                <td class="border border-amber-300 p-2">Isi Pertanyaan Soal...</td>
+                                <td class="border border-amber-300 p-2">Pilihan A</td>
+                                <td class="border border-amber-300 p-2">Pilihan B</td>
+                                <td class="border border-amber-300 p-2">Pilihan C</td>
+                                <td class="border border-amber-300 p-2">Pilihan D</td>
+                                <td class="border border-amber-300 p-2">Pilihan E</td>
+                                <td class="border border-amber-300 p-2 font-black text-emerald-600">A / B / C / D / E</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <p class="mt-2 text-xs">Abaikan baris Header/Judul Tabel saat Copy. Langsung Copy baris isinya saja.</p>
+                </div>
+                
+                <textarea id="import-textarea" class="flex-1 w-full p-4 border-2 border-blue-200 rounded-xl text-sm font-mono whitespace-pre outline-none focus:border-blue-500 shadow-inner" placeholder="Paste (Ctrl+V) data dari Excel di sini..."></textarea>
+            </div>
+            <div class="p-5 border-t border-slate-100 bg-white flex justify-between items-center">
+                <span class="text-xs text-slate-500 font-bold" id="import-status">Menunggu data...</span>
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeModal('modal-import')" class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl transition-colors">Batal</button>
+                    <button type="button" onclick="prosesImportSoal()" class="px-6 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-md flex items-center gap-2"><i data-feather="cpu" class="w-4 h-4"></i> Ekstrak & Simpan Soal</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Edit/Tambah Soal Manual -->
+    <div id="modal-soal-manual" class="hidden fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[60] p-4 transition-opacity no-print modal-backdrop">
+        <div class="bg-white rounded-3xl shadow-xl w-full max-w-3xl overflow-hidden transform transition-all flex flex-col h-[90vh]">
+            <div class="flex justify-between items-center p-5 border-b border-slate-100">
+                <h3 id="modal-title-soal" class="font-black text-lg text-slate-800">Editor Item Soal</h3>
+                <button onclick="closeModal('modal-soal-manual')" class="text-slate-400 hover:text-slate-600"><i data-feather="x" class="w-5 h-5"></i></button>
+            </div>
+            <form id="formObj-soal" onsubmit="simpanSoalManual(event)" class="overflow-y-auto p-6 flex-1 flex flex-col gap-5 bg-slate-50">
+                <input type="hidden" id="form-soal-idx"> <!-- Index array soal, kosong jika baru -->
+                
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-2 uppercase">Teks Pertanyaan *</label>
+                    <textarea id="form-soal-teks" required rows="4" class="w-full px-4 py-3 border border-slate-300 rounded-xl text-sm outline-none focus:border-emerald-500 shadow-inner" placeholder="Ketik pertanyaan di sini..."></textarea>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] font-black text-slate-500 uppercase">Pilihan A *</label>
+                        <input id="form-soal-a" required type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-emerald-500" />
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] font-black text-slate-500 uppercase">Pilihan B *</label>
+                        <input id="form-soal-b" required type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-emerald-500" />
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] font-black text-slate-500 uppercase">Pilihan C *</label>
+                        <input id="form-soal-c" required type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-emerald-500" />
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-[10px] font-black text-slate-500 uppercase">Pilihan D *</label>
+                        <input id="form-soal-d" required type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-emerald-500" />
+                    </div>
+                    <div class="flex flex-col gap-1 md:col-span-2">
+                        <label class="text-[10px] font-black text-slate-500 uppercase">Pilihan E (Opsional)</label>
+                        <input id="form-soal-e" type="text" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm outline-none focus:border-emerald-500" />
+                    </div>
+                </div>
+
+                <div class="bg-emerald-50 border-2 border-emerald-200 p-4 rounded-xl mt-2">
+                    <label class="block text-xs font-black text-emerald-800 mb-2 uppercase">Kunci Jawaban Benar *</label>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700"><input type="radio" name="soalKunci" value="A" required class="w-4 h-4 text-emerald-600"> A</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700"><input type="radio" name="soalKunci" value="B" class="w-4 h-4 text-emerald-600"> B</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700"><input type="radio" name="soalKunci" value="C" class="w-4 h-4 text-emerald-600"> C</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700"><input type="radio" name="soalKunci" value="D" class="w-4 h-4 text-emerald-600"> D</label>
+                        <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-700"><input type="radio" name="soalKunci" value="E" class="w-4 h-4 text-emerald-600"> E</label>
+                    </div>
+                </div>
+            </form>
+            <div class="p-5 border-t border-slate-100 bg-white flex justify-end gap-3">
+                <button type="button" onclick="closeModal('modal-soal-manual')" class="px-5 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 rounded-xl">Batal</button>
+                <button type="button" onclick="document.getElementById('formObj-soal').requestSubmit()" class="px-6 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md">Simpan Soal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cetak LHE (Detail Jawaban Peserta) -->
+    <div id="modal-detail-jawaban" class="hidden fixed inset-0 bg-slate-900/90 flex items-center justify-center z-[70] p-4 transition-opacity no-print modal-backdrop">
+        <div class="bg-white shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col h-[95vh] print-area relative">
+            <div class="flex justify-between items-center p-4 border-b border-slate-200 bg-slate-100 no-print">
+                <h3 class="font-black text-slate-800">Pratinjau Cetak LHE (Lembar Hasil Evaluasi)</h3>
+                <div class="flex gap-2">
+                    <button onclick="window.print()" class="bg-slate-800 text-white px-4 py-1.5 rounded-lg text-sm font-bold flex items-center gap-2"><i data-feather="printer" class="w-4 h-4"></i> Cetak</button>
+                    <button onclick="tutupCetakDetail()" class="bg-red-100 text-red-600 hover:bg-red-200 px-3 py-1.5 rounded-lg font-bold"><i data-feather="x" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 p-8 bg-white text-black" id="cetak-lhe-content">
+                <!-- Konten Print LHE di-generate via JS -->
+            </div>
         </div>
     </div>
 
@@ -325,10 +714,8 @@
         // --- KONFIGURASI FIREBASE ---
         let firebaseConfig;
         if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-            // Gunakan config dari environment Canvas saat preview
             firebaseConfig = JSON.parse(__firebase_config);
         } else {
-            // Gunakan config milik Anda saat di-deploy ke GitHub Pages
             firebaseConfig = {
                 apiKey: "AIzaSyDD-vJo92cadOA0tEoDeMrtdMC3xM6HL0w",
                 authDomain: "tesmenongo.firebaseapp.com",
@@ -346,20 +733,26 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'cat-desa-app';
         let userId = null;
 
-        // --- GLOBAL STATE ---
+        // --- GLOBAL DATA & CONSTANTS ---
+        const FORMASI_LIST = [
+            "Sekretaris Desa", "Kaur Keuangan", "Kaur Tata Usaha & Umum", "Kaur Perencanaan", 
+            "Kasi Pemerintahan", "Kasi Kesejahteraan", "Kasi Pelayanan", "Kepala Dusun"
+        ];
+        
         window.dataLembaga = { nama: 'Pemerintah Desa', kecamatan: 'Kecamatan...' };
         window.dataPeserta = [];
+        window.dataMateri = [];
+        window.dataJadwal = [];
+        window.dataHasil = [];
 
-        // --- INIT AUTHENTICATION ---
+        let activeMateriId = null; // Menyimpan ID materi saat sedang membuka "Kelola Soal"
+
+        // --- INIT AUTH ---
         async function initAuth() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    try {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } catch (tokenError) {
-                        console.warn("Token mismatch (kemungkinan memakai config eksternal), beralih ke mode anonim.");
-                        await signInAnonymously(auth);
-                    }
+                    try { await signInWithCustomToken(auth, __initial_auth_token); } 
+                    catch (e) { await signInAnonymously(auth); }
                 } else {
                     await signInAnonymously(auth);
                 }
@@ -374,49 +767,86 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 userId = user.uid;
-                document.getElementById('auth-status').innerText = "Database Terhubung • Online";
-                fetchDatabaseRealtime();
+                document.getElementById('auth-status').innerText = "Database Online • Siap";
+                fetchSemuaData();
+                renderOptionsFormasi();
             }
         });
 
-        // --- FETCH DATA FROM FIREBASE ---
-        function fetchDatabaseRealtime() {
+        // Generate Dropdowns based on FORMASI_LIST
+        function renderOptionsFormasi() {
+            let opts = `<option value="">-- Pilih Grup Formasi --</option>`;
+            FORMASI_LIST.forEach(f => opts += `<option value="${f}">${f}</option>`);
+            
+            document.getElementById('form-formasi').innerHTML = opts;
+            document.getElementById('form-materi-formasi').innerHTML = opts;
+            document.getElementById('form-jadwal-formasi').innerHTML = opts;
+            
+            let filterOpts = `<option value="Semua">Semua Formasi</option>`;
+            FORMASI_LIST.forEach(f => filterOpts += `<option value="${f}">${f}</option>`);
+            document.getElementById('filter-peserta-formasi').innerHTML = filterOpts;
+        }
+
+        // --- FETCH DATA FIREBASE REALTIME ---
+        function fetchSemuaData() {
             if (!userId) return;
 
-            // 1. Ambil Setting Lembaga
-            const lembagaRef = collection(db, 'artifacts', appId, 'users', userId, 'lembaga');
-            onSnapshot(lembagaRef, (snapshot) => {
-                if(!snapshot.empty) {
-                    // Kita asumsikan hanya ada 1 dokumen setting
-                    const data = snapshot.docs[0].data();
-                    window.dataLembaga = { id: snapshot.docs[0].id, ...data };
-                    
-                    // Update UI Dashboard
-                    document.getElementById('input-lembaga-nama').value = data.nama;
-                    document.getElementById('input-lembaga-kecamatan').value = data.kecamatan;
-                    // Update UI Header & Kop Surat
-                    document.getElementById('header-lembaga-nama').innerText = data.nama;
-                    document.getElementById('kop-nama-desa').innerText = data.nama.toUpperCase();
-                    document.getElementById('kop-kecamatan').innerText = data.kecamatan;
+            // 1. Lembaga
+            onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'lembaga'), (snap) => {
+                if(!snap.empty) {
+                    const data = snap.docs[0].data();
+                    window.dataLembaga = { id: snap.docs[0].id, ...data };
+                    document.getElementById('input-lembaga-nama').value = data.nama || '';
+                    document.getElementById('input-lembaga-kecamatan').value = data.kecamatan || '';
+                    document.getElementById('header-lembaga-nama').innerText = data.nama || 'Pemerintah Desa';
+                    document.getElementById('kop-nama-desa-1').innerText = (data.nama || 'Pemerintah Desa').toUpperCase();
+                    document.getElementById('kop-kecamatan-1').innerText = data.kecamatan || 'Kecamatan';
                 }
             });
 
-            // 2. Ambil Data Peserta
-            const pesertaRef = collection(db, 'artifacts', appId, 'users', userId, 'peserta');
-            onSnapshot(pesertaRef, (snapshot) => {
-                window.dataPeserta = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // Urutkan berdasarkan Nomor Peserta
-                window.dataPeserta.sort((a,b) => a.noPeserta.localeCompare(b.noPeserta));
-                
-                // Update Statistik Dashboard
+            // 2. Peserta
+            onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'peserta'), (snap) => {
+                window.dataPeserta = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 document.getElementById('stat-peserta').innerText = window.dataPeserta.length;
-                // Render Tabel
                 window.renderPeserta();
+                window.renderStatus(); 
+            });
+
+            // 3. Materi & Bank Soal
+            onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'materi'), (snap) => {
+                window.dataMateri = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                document.getElementById('stat-materi').innerText = window.dataMateri.length;
+                window.renderMateri();
+                
+                // Jika sedang buka view detail soal, re-render list soalnya
+                if(activeMateriId) window.renderListSoal(activeMateriId);
+                
+                // Jika sedang buka form jadwal, re-render dropdown materi agar update
+                if(!document.getElementById('modal-jadwal').classList.contains('hidden')){
+                    window.populateSelectMateriJadwal();
+                }
+            });
+
+            // 4. Jadwal
+            onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'jadwal'), (snap) => {
+                window.dataJadwal = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                document.getElementById('stat-jadwal-total').innerText = window.dataJadwal.length;
+                document.getElementById('stat-jadwal-aktif').innerText = window.dataJadwal.filter(j => j.status === 'Aktif').length;
+                
+                window.renderJadwal();
+                window.renderStatus(); 
+                window.populateSelectHasil(); 
+            });
+
+            // 5. Hasil
+            onSnapshot(collection(db, 'artifacts', appId, 'users', userId, 'hasil'), (snap) => {
+                window.dataHasil = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                window.renderHasil();
             });
         }
 
         // ==========================================
-        // FUNGSI UI & CRUD (Diexpose ke window agar bisa dipanggil dari HTML)
+        // FUNGSI UMUM UI
         // ==========================================
         feather.replace();
 
@@ -427,78 +857,85 @@
             setTimeout(() => toast.classList.add('translate-x-full', 'opacity-0'), 3000);
         };
 
-        // --- NAVIGASI TAB & SIDEBAR ---
         window.switchTab = (tabId) => {
-            document.querySelectorAll('.tab-content').forEach(el => {
-                el.classList.add('hidden'); el.classList.remove('block');
-            });
+            document.querySelectorAll('.tab-content').forEach(el => { el.classList.add('hidden'); el.classList.remove('block'); });
             document.getElementById('view-' + tabId).classList.remove('hidden');
             document.getElementById('view-' + tabId).classList.add('block');
 
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.className = "nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 text-emerald-100/70 hover:bg-emerald-800/50 hover:text-white";
+                btn.className = "nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-white";
             });
-            document.getElementById('nav-' + tabId).className = "nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 bg-emerald-800 text-white shadow-inner border border-emerald-700";
+            document.getElementById('nav-' + tabId).className = "nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 bg-emerald-600 text-white shadow-md";
         };
 
         window.toggleSidebar = () => {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            if(sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full', 'w-0');
-                sidebar.classList.add('w-64');
-                overlay.classList.remove('hidden');
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('overlay');
+            if(sb.classList.contains('-translate-x-full')) {
+                sb.classList.remove('-translate-x-full', 'w-0'); sb.classList.add('w-64'); ov.classList.remove('hidden');
             } else {
-                sidebar.classList.add('-translate-x-full', 'w-0');
-                sidebar.classList.remove('w-64');
-                overlay.classList.add('hidden');
+                sb.classList.add('-translate-x-full', 'w-0'); sb.classList.remove('w-64'); ov.classList.add('hidden');
             }
         };
 
-        // --- CRUD LEMBAGA ---
-        window.simpanLembaga = async () => {
-            if (!userId) return alert("Belum terhubung ke database!");
-            const nama = document.getElementById('input-lembaga-nama').value;
-            const kecamatan = document.getElementById('input-lembaga-kecamatan').value;
+        window.closeModal = (id) => document.getElementById(id).classList.add('hidden');
 
-            const docId = window.dataLembaga.id || 'setting-utama';
-            const docRef = doc(db, 'artifacts', appId, 'users', userId, 'lembaga', docId);
-            
-            await setDoc(docRef, { nama, kecamatan });
-            window.showToast("Profil Lembaga Disimpan!");
+        // Generator Token Acak (6 Karakter Uppercase Alphanumeric)
+        window.generateToken = () => {
+            return Math.random().toString(36).substring(2, 8).toUpperCase();
         };
 
-        // --- CRUD PESERTA ---
+        // ==========================================
+        // FITUR 1: LEMBAGA
+        // ==========================================
+        window.simpanLembaga = async () => {
+            if (!userId) return alert("Belum terhubung database!");
+            const nama = document.getElementById('input-lembaga-nama').value;
+            const kecamatan = document.getElementById('input-lembaga-kecamatan').value;
+            const docId = window.dataLembaga.id || 'setting-utama';
+            await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'lembaga', docId), { nama, kecamatan });
+            window.showToast("Pengaturan Tersimpan!");
+        };
+
+        // ==========================================
+        // FITUR 2: PESERTA
+        // ==========================================
         window.renderPeserta = () => {
             const tbody = document.getElementById('tbody-peserta');
             const search = document.getElementById('search-peserta').value.toLowerCase();
+            const filterFormasi = document.getElementById('filter-peserta-formasi').value;
             tbody.innerHTML = '';
-
-            const filtered = window.dataPeserta.filter(p => 
-                p.nama.toLowerCase().includes(search) || p.noPeserta.toLowerCase().includes(search)
-            );
+            
+            let filtered = window.dataPeserta.filter(p => p.nama.toLowerCase().includes(search) || p.noPeserta.toLowerCase().includes(search) || (p.nik && p.nik.includes(search)));
+            if(filterFormasi !== 'Semua') {
+                filtered = filtered.filter(p => p.formasi === filterFormasi);
+            }
+            filtered.sort((a,b) => a.noPeserta.localeCompare(b.noPeserta));
 
             if(filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center p-8 text-slate-400 font-medium">Tidak ada data peserta.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center p-12 text-slate-400 font-bold bg-white">Belum ada data peserta.</td></tr>`;
                 return;
             }
 
             filtered.forEach(p => {
-                // Tentukan warna badge formasi
-                let color = 'bg-slate-100 text-slate-700';
-                if(p.formasi.includes('Sekretaris')) color = 'bg-blue-100 text-blue-700';
-                if(p.formasi.includes('Keuangan')) color = 'bg-emerald-100 text-emerald-700';
-                if(p.formasi.includes('Pemerintahan')) color = 'bg-amber-100 text-amber-700';
-
+                const ttl = p.tglLahir ? `${p.tempatLahir || '-'}, ${p.tglLahir}` : '-';
                 tbody.innerHTML += `
-                    <tr class="border-b border-slate-100 hover:bg-slate-50">
-                        <td class="px-6 py-4 font-mono font-bold text-slate-700">${p.noPeserta}</td>
-                        <td class="px-6 py-4 font-bold text-slate-800">${p.nama}</td>
-                        <td class="px-6 py-4"><span class="${color} px-2.5 py-1 rounded text-xs font-bold">${p.formasi}</span></td>
-                        <td class="px-6 py-4 text-center">
+                    <tr class="border-b border-slate-200 hover:bg-slate-50 bg-white transition-colors">
+                        <td class="px-5 py-4 font-mono font-black text-slate-800 align-top">${p.noPeserta}</td>
+                        <td class="px-5 py-4 align-top">
+                            <p class="font-black text-slate-900 text-base">${p.nama}</p>
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-1 mt-2 text-[11px] font-medium text-slate-500">
+                                <span><i data-feather="credit-card" class="w-3 h-3 inline mb-0.5"></i> NIK: <strong class="text-slate-700">${p.nik || '-'}</strong></span>
+                                <span><i data-feather="user" class="w-3 h-3 inline mb-0.5"></i> JK: ${p.jk || '-'}</span>
+                                <span class="col-span-2"><i data-feather="map-pin" class="w-3 h-3 inline mb-0.5"></i> TTL: ${ttl}</span>
+                                <span class="col-span-2"><i data-feather="book-open" class="w-3 h-3 inline mb-0.5"></i> Pendidikan: ${p.pendidikan || '-'}</span>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4 text-center align-middle"><span class="bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider">${p.formasi}</span></td>
+                        <td class="px-5 py-4 text-center align-middle">
                             <div class="flex justify-center gap-2">
-                                <button onclick="window.editPeserta('${p.id}')" class="p-1.5 text-slate-500 hover:text-emerald-600 bg-slate-100 hover:bg-emerald-50 rounded transition-colors"><i data-feather="edit-2" class="w-4 h-4"></i></button>
-                                <button onclick="window.hapusPeserta('${p.id}')" class="p-1.5 text-slate-500 hover:text-red-600 bg-slate-100 hover:bg-red-50 rounded transition-colors"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                                <button onclick="window.editPeserta('${p.id}')" class="p-2 text-slate-500 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 rounded-xl transition-colors border border-slate-200 shadow-sm" title="Edit"><i data-feather="edit-2" class="w-4 h-4"></i></button>
+                                <button onclick="window.hapusPeserta('${p.id}')" class="p-2 text-slate-500 hover:text-red-600 bg-slate-100 hover:bg-red-50 rounded-xl transition-colors border border-slate-200 shadow-sm" title="Hapus"><i data-feather="trash-2" class="w-4 h-4"></i></button>
                             </div>
                         </td>
                     </tr>
@@ -508,15 +945,10 @@
         };
 
         window.openModalPeserta = () => {
+            document.getElementById('formObj-peserta').reset();
             document.getElementById('form-peserta-id').value = '';
-            document.getElementById('form-no').value = '';
-            document.getElementById('form-nama').value = '';
-            document.getElementById('form-formasi').value = 'Sekretaris Desa';
+            document.getElementById('modal-title-peserta').innerText = "Form Biodata Peserta (Baru)";
             document.getElementById('modal-peserta').classList.remove('hidden');
-        };
-
-        window.closeModalPeserta = () => {
-            document.getElementById('modal-peserta').classList.add('hidden');
         };
 
         window.editPeserta = (id) => {
@@ -524,38 +956,793 @@
             if(p) {
                 document.getElementById('form-peserta-id').value = p.id;
                 document.getElementById('form-no').value = p.noPeserta;
+                document.getElementById('form-nik').value = p.nik || '';
                 document.getElementById('form-nama').value = p.nama;
                 document.getElementById('form-formasi').value = p.formasi;
+                document.getElementById('form-tempat').value = p.tempatLahir || '';
+                document.getElementById('form-tglLahir').value = p.tglLahir || '';
+                document.getElementById('form-jk').value = p.jk || 'Laki-Laki';
+                document.getElementById('form-pendidikan').value = p.pendidikan || 'SMA/SMK/Sederajat';
+                document.getElementById('modal-title-peserta').innerText = "Edit Biodata Peserta";
                 document.getElementById('modal-peserta').classList.remove('hidden');
             }
         };
 
         window.simpanPeserta = async (e) => {
             e.preventDefault();
-            if (!userId) return alert("Database belum siap.");
-
-            const id = document.getElementById('form-peserta-id').value;
-            const docId = id ? id : Date.now().toString(); // ID Unik
-
-            const newData = {
-                noPeserta: document.getElementById('form-no').value,
-                nama: document.getElementById('form-nama').value,
+            const id = document.getElementById('form-peserta-id').value || Date.now().toString();
+            await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'peserta', id), {
+                noPeserta: document.getElementById('form-no').value.toUpperCase(),
+                nik: document.getElementById('form-nik').value,
+                nama: document.getElementById('form-nama').value.toUpperCase(),
                 formasi: document.getElementById('form-formasi').value,
-            };
-
-            const docRef = doc(db, 'artifacts', appId, 'users', userId, 'peserta', docId);
-            await setDoc(docRef, newData);
-
-            window.showToast("Data Peserta Disimpan!");
-            window.closeModalPeserta();
+                tempatLahir: document.getElementById('form-tempat').value.toUpperCase(),
+                tglLahir: document.getElementById('form-tglLahir').value,
+                jk: document.getElementById('form-jk').value,
+                pendidikan: document.getElementById('form-pendidikan').value,
+            });
+            window.showToast("Biodata Tersimpan!");
+            window.closeModal('modal-peserta');
         };
 
         window.hapusPeserta = async (id) => {
-            if(confirm("Apakah Anda yakin ingin menghapus data peserta ini?")) {
-                const docRef = doc(db, 'artifacts', appId, 'users', userId, 'peserta', id);
-                await deleteDoc(docRef);
-                window.showToast("Peserta Berhasil Dihapus");
+            if(confirm("Yakin hapus peserta beserta data nilai yang mungkin terkait?")) await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'peserta', id));
+        };
+
+        // ==========================================
+        // FITUR 3: MATERI & BANK SOAL
+        // ==========================================
+        window.renderMateri = () => {
+            const container = document.getElementById('container-materi');
+            container.innerHTML = '';
+            
+            if(window.dataMateri.length === 0) {
+                container.innerHTML = `<div class="col-span-full p-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200 shadow-sm"><i data-feather="database" class="w-12 h-12 mx-auto mb-4 text-slate-300"></i><p class="font-bold text-lg">Belum ada wadah Bank Soal.</p><p class="text-sm">Klik 'Buat Bank Soal Baru' untuk memulai.</p></div>`;
+                feather.replace(); return;
             }
+
+            window.dataMateri.forEach(m => {
+                const arrSoal = m.daftarSoal || [];
+                const targetSoal = m.jumlahSoalTarget || 0;
+                // Indikator Soal
+                let soalStatus = `<span class="text-red-500">${arrSoal.length}</span> / ${targetSoal}`;
+                if(arrSoal.length >= targetSoal) soalStatus = `<span class="text-emerald-600">${arrSoal.length}</span> / ${targetSoal}`;
+
+                container.innerHTML += `
+                    <div class="bg-white rounded-3xl border border-slate-200 shadow-md p-6 flex flex-col justify-between hover:shadow-lg transition-all hover:-translate-y-1 group relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase px-3 py-1 rounded-lg border border-emerald-200">${m.formasi}</span>
+                                <div class="flex gap-2 bg-slate-50 p-1 rounded-lg border border-slate-100">
+                                    <button onclick="window.editMateri('${m.id}')" class="p-1 text-slate-400 hover:text-blue-600 rounded"><i data-feather="edit-2" class="w-4 h-4"></i></button>
+                                    <button onclick="window.hapusMateri('${m.id}')" class="p-1 text-slate-400 hover:text-red-600 rounded"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-800 mb-1 leading-tight">${m.nama}</h3>
+                            <p class="text-[11px] text-slate-500 mb-6 font-medium line-clamp-2 h-8">${m.deskripsi}</p>
+                        </div>
+                        <div class="relative z-10 flex justify-between items-end border-t border-slate-100 pt-4 mt-auto">
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Item Soal</p>
+                                <p class="text-base font-black text-slate-700">${soalStatus}</p>
+                            </div>
+                            <button onclick="window.bukaKelolaSoal('${m.id}')" class="text-sm font-black text-white bg-slate-800 px-4 py-2 rounded-xl hover:bg-slate-900 shadow-md transition-colors flex items-center gap-2">Kelola <i data-feather="arrow-right" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+            feather.replace();
+        };
+
+        window.openModalMateri = () => {
+            document.getElementById('form-materi-id').value = '';
+            document.getElementById('form-materi-formasi').value = '';
+            document.getElementById('form-materi-nama').value = '';
+            document.getElementById('form-materi-desc').value = '';
+            document.getElementById('form-materi-soal').value = '50';
+            document.getElementById('modal-title-materi').innerText = "Buat Bank Soal Baru";
+            document.getElementById('modal-materi').classList.remove('hidden');
+        };
+
+        window.editMateri = (id) => {
+            const m = window.dataMateri.find(x => x.id === id);
+            if(m) {
+                document.getElementById('form-materi-id').value = m.id;
+                document.getElementById('form-materi-formasi').value = m.formasi;
+                document.getElementById('form-materi-nama').value = m.nama;
+                document.getElementById('form-materi-desc').value = m.deskripsi;
+                document.getElementById('form-materi-soal').value = m.jumlahSoalTarget || 50;
+                document.getElementById('modal-title-materi').innerText = "Edit Informasi Bank Soal";
+                document.getElementById('modal-materi').classList.remove('hidden');
+            }
+        };
+
+        window.simpanMateri = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('form-materi-id').value || Date.now().toString();
+            // Jika edit, jangan timpa daftarSoal yang sudah ada
+            const mExisting = window.dataMateri.find(x => x.id === id);
+            const arrSoal = mExisting ? mExisting.daftarSoal : [];
+
+            await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'materi', id), {
+                formasi: document.getElementById('form-materi-formasi').value,
+                nama: document.getElementById('form-materi-nama').value,
+                deskripsi: document.getElementById('form-materi-desc').value,
+                jumlahSoalTarget: parseInt(document.getElementById('form-materi-soal').value),
+                daftarSoal: arrSoal 
+            });
+            window.showToast("Wadah Bank Soal Disimpan!");
+            window.closeModal('modal-materi');
+        };
+
+        window.hapusMateri = async (id) => {
+            if(confirm("YAKIN MENGHAPUS MATERI INI? Seluruh item soal di dalamnya juga akan terhapus secara permanen.")) await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'materi', id));
+        };
+
+        // --- SUBVIEW KELOLA SOAL ---
+        window.bukaKelolaSoal = (materiId) => {
+            activeMateriId = materiId;
+            document.getElementById('materi-list-section').classList.add('hidden');
+            document.getElementById('materi-soal-section').classList.remove('hidden');
+            document.getElementById('materi-soal-section').classList.add('flex');
+            
+            const m = window.dataMateri.find(x => x.id === activeMateriId);
+            document.getElementById('header-kelola-soal-nama').innerText = "Bank Soal: " + m.nama;
+            document.getElementById('header-kelola-soal-formasi').innerText = "Dikhususkan untuk Formasi: " + m.formasi.toUpperCase();
+            
+            window.renderListSoal(activeMateriId);
+        };
+
+        window.tutupKelolaSoal = () => {
+            activeMateriId = null;
+            document.getElementById('materi-list-section').classList.remove('hidden');
+            document.getElementById('materi-soal-section').classList.add('hidden');
+            document.getElementById('materi-soal-section').classList.remove('flex');
+        };
+
+        window.renderListSoal = (materiId) => {
+            const m = window.dataMateri.find(x => x.id === materiId);
+            if(!m) return;
+            const container = document.getElementById('container-list-soal');
+            const arrSoal = m.daftarSoal || [];
+            document.getElementById('count-soal').innerText = arrSoal.length;
+            container.innerHTML = '';
+
+            if(arrSoal.length === 0) {
+                container.innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center text-slate-400 p-8">
+                    <i data-feather="inbox" class="w-16 h-16 mb-4 text-slate-300"></i>
+                    <p class="font-bold text-lg text-slate-600">Bank Soal Masih Kosong</p>
+                    <p class="text-sm mt-2 max-w-md text-center">Gunakan tombol <strong class="text-blue-500">Import Paste Excel</strong> di atas untuk memasukkan puluhan soal sekaligus, atau <button onclick="window.tambahSoalManual()" class="text-emerald-600 underline font-bold">Tambah Manual</button>.</p>
+                </div>`;
+                feather.replace(); return;
+            }
+
+            arrSoal.forEach((soal, index) => {
+                let opsiHtml = '';
+                ['A','B','C','D','E'].forEach(opt => {
+                    if(soal['opsi'+opt]) {
+                        const isKunci = soal.kunci === opt;
+                        const cls = isKunci ? 'bg-emerald-100 text-emerald-800 font-bold border-emerald-300' : 'bg-slate-50 text-slate-600 border-slate-200';
+                        const badge = isKunci ? `<i data-feather="check-circle" class="w-3 h-3 text-emerald-600"></i>` : opt;
+                        opsiHtml += `<div class="p-2 border rounded-lg text-xs flex gap-2 items-start ${cls}"><span class="font-black">${badge}</span> <span>${soal['opsi'+opt]}</span></div>`;
+                    }
+                });
+
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-4 relative">
+                        <div class="absolute top-4 right-4 flex gap-2">
+                            <button onclick="window.editSoalManual(${index})" class="p-1.5 text-slate-400 hover:text-emerald-600 bg-slate-50 hover:bg-emerald-50 rounded-lg border border-slate-200 transition-colors"><i data-feather="edit-2" class="w-3.5 h-3.5"></i></button>
+                            <button onclick="window.hapusSoal(${index})" class="p-1.5 text-slate-400 hover:text-red-600 bg-slate-50 hover:bg-red-50 rounded-lg border border-slate-200 transition-colors"><i data-feather="trash-2" class="w-3.5 h-3.5"></i></button>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-8 h-8 rounded-full bg-slate-800 text-white font-black flex items-center justify-center flex-shrink-0 text-sm shadow-md">${index+1}</div>
+                            <div class="flex-1 pr-16">
+                                <p class="text-sm font-black text-slate-800 mb-3 whitespace-pre-wrap">${soal.teks}</p>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-2">${opsiHtml}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            feather.replace();
+        };
+
+        // --- IMPORT EXCEL ---
+        window.openModalImportSoal = () => {
+            document.getElementById('import-textarea').value = '';
+            document.getElementById('import-status').innerText = 'Menunggu data paste...';
+            document.getElementById('modal-import').classList.remove('hidden');
+        };
+
+        window.downloadTemplateExcel = () => {
+            alert("Cara Cepat Import (Tanpa Download):\n\nBuka Excel kosong, buat 7 Kolom Header persis berurutan:\n1. PERTANYAAN SOAL\n2. OPSI A\n3. OPSI B\n4. OPSI C\n5. OPSI D\n6. OPSI E (Kosongkan jika hanya sampai D)\n7. KUNCI (Ketik huruf A/B/C/D/E)\n\nIsi baris-barisnya, lalu COPY baris isinya, dan PASTE ke form Import di aplikasi ini.");
+        };
+
+        window.prosesImportSoal = async () => {
+            if(!activeMateriId || !userId) return;
+            const text = document.getElementById('import-textarea').value.trim();
+            if(!text) return alert("Kotak teks kosong! Silakan Paste (Ctrl+V) data dari Excel.");
+
+            const rows = text.split('\n');
+            let arraySoalBaru = [];
+            let gagal = 0;
+
+            rows.forEach(r => {
+                const cols = r.split('\t');
+                // Minimal butuh: Soal, A, B, C, D, Kunci (6 kolom) -> Opsional E (7 kolom)
+                // Kita mentoleransi jika user copas dari A-E langsung kunci di kolom 7, atau A-D kunci kolom 6
+                if(cols.length >= 6) {
+                    let teks = cols[0].trim();
+                    if(!teks) return; // Skip baris kosong
+                    
+                    let opsiE = "", kunci = "A";
+                    if(cols.length === 6) { // A-D + Kunci
+                        kunci = cols[5].trim().toUpperCase();
+                    } else if (cols.length >= 7) { // A-E + Kunci
+                        opsiE = cols[5].trim();
+                        kunci = cols[6].trim().toUpperCase();
+                    }
+                    
+                    // Normalisasi kunci yg aneh
+                    if(!['A','B','C','D','E'].includes(kunci)) kunci = 'A'; 
+
+                    arraySoalBaru.push({
+                        teks: teks,
+                        opsiA: cols[1].trim(),
+                        opsiB: cols[2].trim(),
+                        opsiC: cols[3].trim(),
+                        opsiD: cols[4].trim(),
+                        opsiE: opsiE,
+                        kunci: kunci
+                    });
+                } else {
+                    gagal++;
+                }
+            });
+
+            if(arraySoalBaru.length === 0) {
+                alert("Format Paste tidak valid. Pastikan Anda meng-copy dari Excel (kolom dibatasi oleh Tab).");
+                return;
+            }
+
+            // Ambil array lama, gabungkan dgn baru
+            const m = window.dataMateri.find(x => x.id === activeMateriId);
+            const arrLama = m.daftarSoal || [];
+            const arrGabungan = [...arrLama, ...arraySoalBaru];
+
+            // Simpan ke DB
+            await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'materi', activeMateriId), { daftarSoal: arrGabungan }, {merge: true});
+
+            window.showToast(`Berhasil Import ${arraySoalBaru.length} Soal! (${gagal} baris diabaikan)`);
+            window.closeModal('modal-import');
+        };
+
+        // --- TAMBAH / EDIT SOAL MANUAL ---
+        window.tambahSoalManual = () => {
+            document.getElementById('formObj-soal').reset();
+            document.getElementById('form-soal-idx').value = ''; // Kosong == Baru
+            document.getElementById('modal-title-soal').innerText = "Buat Soal Baru";
+            document.getElementById('modal-soal-manual').classList.remove('hidden');
+        };
+
+        window.editSoalManual = (idx) => {
+            const m = window.dataMateri.find(x => x.id === activeMateriId);
+            const arr = m.daftarSoal || [];
+            const soal = arr[idx];
+            if(!soal) return;
+
+            document.getElementById('form-soal-idx').value = idx;
+            document.getElementById('form-soal-teks').value = soal.teks;
+            document.getElementById('form-soal-a').value = soal.opsiA;
+            document.getElementById('form-soal-b').value = soal.opsiB;
+            document.getElementById('form-soal-c').value = soal.opsiC;
+            document.getElementById('form-soal-d').value = soal.opsiD;
+            document.getElementById('form-soal-e').value = soal.opsiE || '';
+            
+            // Set radio button kunci
+            const radios = document.getElementsByName('soalKunci');
+            for(let i=0; i<radios.length; i++){
+                if(radios[i].value === soal.kunci) radios[i].checked = true;
+            }
+            
+            document.getElementById('modal-title-soal').innerText = "Edit Item Soal";
+            document.getElementById('modal-soal-manual').classList.remove('hidden');
+        };
+
+        window.simpanSoalManual = async (e) => {
+            e.preventDefault();
+            if(!activeMateriId) return;
+
+            const idxStr = document.getElementById('form-soal-idx').value;
+            
+            // Get Kunci
+            let kunci = 'A';
+            const radios = document.getElementsByName('soalKunci');
+            for(let i=0; i<radios.length; i++){ if(radios[i].checked) kunci = radios[i].value; }
+
+            const objSoal = {
+                teks: document.getElementById('form-soal-teks').value,
+                opsiA: document.getElementById('form-soal-a').value,
+                opsiB: document.getElementById('form-soal-b').value,
+                opsiC: document.getElementById('form-soal-c').value,
+                opsiD: document.getElementById('form-soal-d').value,
+                opsiE: document.getElementById('form-soal-e').value,
+                kunci: kunci
+            };
+
+            const m = window.dataMateri.find(x => x.id === activeMateriId);
+            const arr = [...(m.daftarSoal || [])];
+
+            if(idxStr === '') { // Baru
+                arr.push(objSoal);
+            } else { // Edit
+                arr[parseInt(idxStr)] = objSoal;
+            }
+
+            await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'materi', activeMateriId), { daftarSoal: arr }, {merge: true});
+            window.showToast("Soal Disimpan!");
+            window.closeModal('modal-soal-manual');
+        };
+
+        window.hapusSoal = async (idx) => {
+            if(!confirm("Yakin hapus soal ini?")) return;
+            const m = window.dataMateri.find(x => x.id === activeMateriId);
+            const arr = [...(m.daftarSoal || [])];
+            arr.splice(idx, 1);
+            await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'materi', activeMateriId), { daftarSoal: arr }, {merge: true});
+        };
+
+
+        // ==========================================
+        // FITUR 4: JADWAL UJIAN
+        // ==========================================
+        window.renderJadwal = () => {
+            const tbody = document.getElementById('tbody-jadwal');
+            tbody.innerHTML = '';
+            
+            if(window.dataJadwal.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center p-8 text-slate-400 font-bold bg-white">Belum ada pengaturan jadwal sesi.</td></tr>`;
+                return;
+            }
+
+            const sortedJadwal = [...window.dataJadwal].sort((a,b) => b.id - a.id);
+
+            sortedJadwal.forEach(j => {
+                const materi = window.dataMateri.find(m => m.id === j.materiId);
+                const namaMateri = materi ? materi.nama : '<span class="text-red-500 italic">Materi Terhapus</span>';
+                
+                let badgeClass = 'bg-slate-200 text-slate-600';
+                let st = j.status;
+                if(j.status === 'Aktif') { badgeClass = 'bg-red-500 text-white font-black shadow-lg shadow-red-500/50 animate-pulse'; st = 'LIVE AKTIF'; }
+                if(j.status === 'Selesai') badgeClass = 'bg-slate-800 text-slate-300 line-through';
+
+                // Tgl Formatting
+                const tgl = new Date(j.tanggal);
+                const tglStr = tgl.toLocaleString('id-ID', {day: 'numeric', month: 'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-200 hover:bg-slate-50 bg-white">
+                        <td class="px-5 py-4 align-top">
+                            <p class="font-black text-slate-800 text-base">${j.nama}</p>
+                            <p class="text-[10px] text-slate-400 font-bold mt-1"><i data-feather="clock" class="w-3 h-3 inline mb-0.5"></i> Durasi: ${j.durasi} Menit</p>
+                        </td>
+                        <td class="px-5 py-4 align-top">
+                            <span class="inline-block bg-slate-100 text-slate-700 border border-slate-300 px-2 py-1 rounded text-xs font-bold uppercase mb-1">${j.formasi}</span>
+                            <p class="text-xs text-emerald-700 font-bold line-clamp-2">${namaMateri}</p>
+                        </td>
+                        <td class="px-5 py-4 align-top text-xs font-bold text-slate-600">${tglStr.replace(',', '<br/>')}</td>
+                        <td class="px-5 py-4 text-center align-middle"><span class="font-mono font-black text-blue-600 tracking-widest text-lg bg-blue-50 px-2 py-1 rounded border border-blue-200">${j.token || '------'}</span></td>
+                        <td class="px-5 py-4 text-center align-middle"><span class="px-3 py-1.5 rounded-lg text-[10px] uppercase tracking-wider ${badgeClass}">${st}</span></td>
+                        <td class="px-5 py-4 text-center align-middle">
+                            <div class="flex justify-center gap-2">
+                                <button onclick="window.editJadwal('${j.id}')" class="p-2 text-slate-500 hover:text-emerald-600 bg-slate-100 hover:bg-emerald-50 rounded-xl transition-colors border border-slate-200 shadow-sm" title="Edit Jadwal"><i data-feather="settings" class="w-4 h-4"></i></button>
+                                <button onclick="window.hapusJadwal('${j.id}')" class="p-2 text-slate-500 hover:text-red-600 bg-slate-100 hover:bg-red-50 rounded-xl transition-colors border border-slate-200 shadow-sm" title="Hapus"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            feather.replace();
+        };
+
+        window.populateSelectMateriJadwal = () => {
+            const formasiTerpilih = document.getElementById('form-jadwal-formasi').value;
+            const selectMateri = document.getElementById('form-jadwal-materi');
+            const currentVal = selectMateri.value; // simpan pilihan lama saat edit
+            selectMateri.innerHTML = '<option value="">-- Pilih Materi Tersedia --</option>';
+            
+            let filtered = window.dataMateri.filter(m => m.formasi === formasiTerpilih);
+            if(filtered.length === 0) {
+                selectMateri.innerHTML += `<option value="" disabled>-- Tidak ada Materi untuk Formasi ini --</option>`;
+            } else {
+                filtered.forEach(m => {
+                    const count = (m.daftarSoal || []).length;
+                    selectMateri.innerHTML += `<option value="${m.id}">${m.nama} (${count} Soal Terisi)</option>`;
+                });
+                selectMateri.value = currentVal;
+            }
+        };
+
+        window.openModalJadwal = () => {
+            if(window.dataMateri.length === 0) return alert("Belum ada materi/bank soal. Buat bank soal terlebih dahulu di Menu Materi.");
+            document.getElementById('form-jadwal-id').value = '';
+            document.getElementById('form-jadwal-nama').value = '';
+            document.getElementById('form-jadwal-formasi').value = FORMASI_LIST[0]; // Set default ke formasi pertama
+            window.populateSelectMateriJadwal();
+            document.getElementById('form-jadwal-materi').value = '';
+            document.getElementById('form-jadwal-tgl').value = '';
+            document.getElementById('form-jadwal-durasi').value = '120';
+            document.getElementById('form-jadwal-status').value = 'Menunggu';
+            document.getElementById('modal-title-jadwal').innerText = "Buat Jadwal Sesi CBT";
+            document.getElementById('modal-jadwal').classList.remove('hidden');
+        };
+
+        window.editJadwal = (id) => {
+            const j = window.dataJadwal.find(x => x.id === id);
+            if(j) {
+                document.getElementById('form-jadwal-id').value = j.id;
+                document.getElementById('form-jadwal-nama').value = j.nama;
+                document.getElementById('form-jadwal-formasi').value = j.formasi;
+                window.populateSelectMateriJadwal();
+                document.getElementById('form-jadwal-materi').value = j.materiId;
+                document.getElementById('form-jadwal-tgl').value = j.tanggal;
+                document.getElementById('form-jadwal-durasi').value = j.durasi;
+                document.getElementById('form-jadwal-status').value = j.status;
+                document.getElementById('modal-title-jadwal').innerText = "Edit Pengaturan Sesi";
+                document.getElementById('modal-jadwal').classList.remove('hidden');
+            }
+        };
+
+        window.simpanJadwal = async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('form-jadwal-id').value || Date.now().toString();
+            
+            // Jaga Token lama jika edit, buat baru jika belum ada
+            const jExisting = window.dataJadwal.find(x => x.id === id);
+            const theToken = jExisting && jExisting.token ? jExisting.token : window.generateToken();
+
+            await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'jadwal', id), {
+                nama: document.getElementById('form-jadwal-nama').value,
+                formasi: document.getElementById('form-jadwal-formasi').value,
+                materiId: document.getElementById('form-jadwal-materi').value,
+                tanggal: document.getElementById('form-jadwal-tgl').value,
+                durasi: parseInt(document.getElementById('form-jadwal-durasi').value),
+                status: document.getElementById('form-jadwal-status').value,
+                token: theToken
+            });
+            window.showToast("Pengaturan CBT Disimpan!");
+            window.closeModal('modal-jadwal');
+        };
+
+        window.hapusJadwal = async (id) => {
+            if(confirm("Yakin hapus jadwal ini? Hasil ujian yang terkait jadwal ini juga tidak akan bisa diakses.")) await deleteDoc(doc(db, 'artifacts', appId, 'users', userId, 'jadwal', id));
+        };
+
+
+        // ==========================================
+        // FITUR 5: STATUS UJIAN & SIMULATOR JENIUS
+        // ==========================================
+        let idJadwalAktif = null;
+
+        window.renderStatus = () => {
+            const noActiveDiv = document.getElementById('status-no-active');
+            const activeDiv = document.getElementById('status-active-container');
+            const badgeLive = document.getElementById('badge-live');
+            
+            // Cari jadwal AKTIF
+            const jadwalAktif = window.dataJadwal.find(j => j.status === 'Aktif');
+
+            if(!jadwalAktif) {
+                noActiveDiv.classList.remove('hidden');
+                activeDiv.classList.add('hidden');
+                badgeLive.classList.add('hidden');
+                idJadwalAktif = null;
+                return;
+            }
+
+            // UI Live Sesi
+            idJadwalAktif = jadwalAktif.id;
+            badgeLive.classList.remove('hidden');
+            noActiveDiv.classList.add('hidden');
+            activeDiv.classList.remove('hidden');
+            
+            const materi = window.dataMateri.find(m => m.id === jadwalAktif.materiId);
+            
+            document.getElementById('status-nama-jadwal').innerText = jadwalAktif.nama;
+            document.getElementById('status-nama-formasi').innerText = jadwalAktif.formasi;
+            document.getElementById('status-nama-materi').innerText = materi ? `${materi.nama}` : 'Materi Terhapus';
+            document.getElementById('status-token').innerText = jadwalAktif.token || 'ERROR';
+
+            // Filter peserta sesuai formasi jadwal tersebut
+            const pesertaUjianIni = window.dataPeserta.filter(p => p.formasi === jadwalAktif.formasi);
+            document.getElementById('status-count-peserta').innerText = pesertaUjianIni.length;
+
+            const tbody = document.getElementById('tbody-status-peserta');
+            tbody.innerHTML = '';
+            
+            if(pesertaUjianIni.length === 0) {
+                 tbody.innerHTML = `<tr><td colspan="4" class="text-center p-4 text-slate-500 font-bold bg-white">Belum ada peserta yang didaftarkan untuk formasi ini.</td></tr>`;
+                 return;
+            }
+
+            pesertaUjianIni.forEach(p => {
+                const hasilSelesai = window.dataHasil.find(h => h.jadwalId === jadwalAktif.id && h.pesertaId === p.id);
+                
+                let htmlStatus, htmlAksi;
+                if(hasilSelesai) {
+                    htmlStatus = `<span class="flex items-center justify-center gap-1.5 text-[11px] font-black uppercase text-emerald-600 bg-emerald-100 px-3 py-1.5 rounded-lg border border-emerald-200"><i data-feather="check-square" class="w-3.5 h-3.5"></i> Selesai (Submit)</span>`;
+                    htmlAksi = `-`;
+                } else {
+                    htmlStatus = `<span class="flex items-center justify-center gap-1.5 text-[11px] font-black uppercase text-blue-600 bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200"><i data-feather="loader" class="w-3.5 h-3.5 animate-spin"></i> CBT Aktif</span>`;
+                    htmlAksi = `<button onclick="alert('Fitur Reset Login: Membuka kunci IP Address peserta jika komputer restart (Hanya Mockup).')" class="text-[10px] font-bold bg-slate-100 border border-slate-300 text-slate-600 px-3 py-1 rounded hover:bg-slate-200 shadow-sm"><i data-feather="unlock" class="w-3 h-3 inline mb-0.5"></i> Reset Login</button>`;
+                }
+
+                tbody.innerHTML += `
+                    <tr class="border-b border-slate-200 hover:bg-slate-50 bg-white">
+                        <td class="px-5 py-3 font-mono font-black text-slate-800">${p.noPeserta}</td>
+                        <td class="px-5 py-3 font-bold text-slate-800">${p.nama}</td>
+                        <td class="px-5 py-3 align-middle text-center">${htmlStatus}</td>
+                        <td class="px-5 py-3 align-middle text-center">${htmlAksi}</td>
+                    </tr>
+                `;
+            });
+            feather.replace();
+        };
+
+        // SIMULATOR AUTO-GRADE CERDAS BERDASARKAN BANK SOAL ASLI
+        window.simulasikanUjianSelesai = async () => {
+            if(!idJadwalAktif) return alert("Ubah status salah satu Jadwal menjadi AKTIF terlebih dahulu.");
+            if(!confirm("SIMULATOR AUTO-GRADE CBT\n\nSistem akan mensimulasikan seluruh peserta mengerjakan ujian sesuai Bank Soal, lalu jadwal akan otomatis ditutup. Lanjutkan?")) return;
+
+            const jadwal = window.dataJadwal.find(j => j.id === idJadwalAktif);
+            const pesertaUjianIni = window.dataPeserta.filter(p => p.formasi === jadwal.formasi);
+            const materi = window.dataMateri.find(m => m.id === jadwal.materiId);
+            
+            const arrSoal = materi && materi.daftarSoal ? materi.daftarSoal : [];
+            const jumlahSoalDiujikan = materi ? (materi.jumlahSoalTarget || arrSoal.length) : 0;
+
+            if(arrSoal.length === 0 || jumlahSoalDiujikan === 0) {
+                alert("GAGAL SIMULASI: Bank Soal untuk jadwal ini masih kosong! Silakan import soal terlebih dahulu.");
+                return;
+            }
+
+            // Loop tiap peserta formasi tersebut
+            const promises = pesertaUjianIni.map(async (p) => {
+                const ada = window.dataHasil.some(h => h.jadwalId === idJadwalAktif && h.pesertaId === p.id);
+                if(ada) return; // Lewati yg sudah selesai (jika ada)
+
+                let detailJawabanPeserta = [];
+                let benar = 0;
+                let salah = 0;
+                let kosong = 0;
+
+                // Batasi jumlah soal sesuai target di setting Materi
+                const maxSoal = Math.min(arrSoal.length, jumlahSoalDiujikan);
+                
+                // Ambil sebagian soal (simulasi randomisasi subset)
+                let soalTerpilih = [...arrSoal].sort(()=> 0.5 - Math.random()).slice(0, maxSoal);
+
+                soalTerpilih.forEach((soal, idx) => {
+                    // Cek opsi yang ada
+                    let opsis = ['A','B','C','D','E'].filter(opt => soal['opsi'+opt] && soal['opsi'+opt].trim() !== '');
+                    if(opsis.length === 0) opsis = ['A','B','C','D']; // fallback
+
+                    // Simulasi Pengerjaan: Peluang benar 30% - 90% (acak)
+                    let peluangPintar = Math.random(); 
+                    let dijawab = '';
+
+                    if(peluangPintar < 0.05) {
+                        dijawab = '-'; // Kosong (5% kemungkinan)
+                        kosong++;
+                    } else {
+                        // Jika random < 0.6 (60% chance) dia akan menjawab benar, jika tidak dia ngacak opsi
+                        if(Math.random() < 0.6) {
+                            dijawab = soal.kunci;
+                        } else {
+                            dijawab = opsis[Math.floor(Math.random() * opsis.length)];
+                        }
+                    }
+
+                    let isBenar = dijawab === soal.kunci;
+                    if(isBenar) benar++;
+                    else if (dijawab !== '-') salah++;
+
+                    detailJawabanPeserta.push({
+                        no: idx + 1,
+                        teksSoal: soal.teks,
+                        kunciAsli: soal.kunci,
+                        jawabanPeserta: dijawab,
+                        status: isBenar ? 1 : 0
+                    });
+                });
+
+                // Perhitungan Skor Skala 100
+                const nilaiAkhir = ((benar / maxSoal) * 100).toFixed(2);
+
+                const hasilId = `${idJadwalAktif}_${p.id}`; 
+                return setDoc(doc(db, 'artifacts', appId, 'users', userId, 'hasil', hasilId), {
+                    jadwalId: idJadwalAktif,
+                    pesertaId: p.id,
+                    formasiPeserta: p.formasi, // Snapshot info saat itu
+                    benar: benar,
+                    salah: salah,
+                    kosong: kosong,
+                    totalSoal: maxSoal,
+                    nilai: parseFloat(nilaiAkhir),
+                    detail: detailJawabanPeserta
+                });
+            });
+
+            await Promise.all(promises);
+            await setDoc(doc(db, 'artifacts', appId, 'users', userId, 'jadwal', idJadwalAktif), { status: 'Selesai' }, {merge: true});
+
+            window.showToast("Skoring Selesai! Mengalihkan ke halaman Laporan...");
+            setTimeout(() => window.switchTab('hasil'), 1000);
+        };
+
+
+        // ==========================================
+        // FITUR 6: HASIL & CETAK LHE (LEMBAR HASIL EVALUASI)
+        // ==========================================
+        window.populateSelectHasil = () => {
+            const select = document.getElementById('select-hasil-jadwal');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- Pilih Jadwal Ujian Tersedia --</option>';
+            
+            // Tampilkan jadwal yang Selesai atau Aktif (yg sdh ada isinya)
+            window.dataJadwal.sort((a,b)=>b.id - a.id).forEach(j => {
+                select.innerHTML += `<option value="${j.id}">[${j.formasi.toUpperCase()}] ${j.nama}</option>`;
+            });
+            
+            if(!currentVal && window.dataJadwal.length > 0) {
+                select.value = window.dataJadwal[0].id;
+                window.renderHasil();
+            } else {
+                select.value = currentVal;
+            }
+        };
+
+        window.renderHasil = () => {
+            const idJadwal = document.getElementById('select-hasil-jadwal').value;
+            const tbody = document.getElementById('tbody-hasil');
+            const detailLabel = document.getElementById('laporan-detail');
+            tbody.innerHTML = '';
+
+            if(!idJadwal) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-slate-500 font-bold bg-slate-50 border border-slate-300">Silakan pilih jadwal untuk melihat data nilai.</td></tr>`;
+                detailLabel.innerText = 'Pilih jadwal di sebelah kanan untuk memuat.';
+                return;
+            }
+
+            const jadwal = window.dataJadwal.find(j => j.id === idJadwal);
+            if(jadwal) {
+                const tgl = new Date(jadwal.tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year:'numeric'});
+                detailLabel.innerHTML = `Nama Ujian: <span class="text-slate-900">${jadwal.nama}</span> | Grup: <span class="text-slate-900">${jadwal.formasi}</span> | Tanggal: <span class="text-slate-900">${tgl}</span>`;
+            }
+
+            const hasilUjianIni = window.dataHasil.filter(h => h.jadwalId === idJadwal);
+
+            if(hasilUjianIni.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="text-center p-8 text-slate-500 font-bold bg-white border border-slate-300">Belum ada skor (Peserta belum submit ujian pada jadwal ini).</td></tr>`;
+                return;
+            }
+
+            // Gabungkan, URUTKAN RANKING (Nilai tertinggi)
+            const daftarRanking = hasilUjianIni.map(h => {
+                const peserta = window.dataPeserta.find(p => p.id === h.pesertaId);
+                return {
+                    ...h,
+                    namaPeserta: peserta ? peserta.nama : '*Data Peserta Dihapus*',
+                    noPeserta: peserta ? peserta.noPeserta : '-',
+                };
+            }).sort((a, b) => b.nilai - a.nilai); 
+
+            daftarRanking.forEach((data, index) => {
+                tbody.innerHTML += `
+                    <tr class="bg-white hover:bg-emerald-50 transition-colors border-b border-slate-300">
+                        <td class="border-x border-slate-300 px-4 py-3 text-center font-black text-slate-800 text-base">${index + 1}</td>
+                        <td class="border-x border-slate-300 px-4 py-3 font-mono font-bold text-slate-600 text-xs">${data.noPeserta}</td>
+                        <td class="border-x border-slate-300 px-4 py-3 font-black text-slate-900 uppercase">${data.namaPeserta}</td>
+                        <td class="border-x border-slate-300 px-4 py-3 text-center text-emerald-600 font-black">${data.benar}</td>
+                        <td class="border-x border-slate-300 px-4 py-3 text-center text-red-600 font-black">${data.salah}</td>
+                        <td class="border-x border-slate-300 px-4 py-3 text-center text-slate-400 font-black">${data.kosong || 0}</td>
+                        <td class="border-x border-slate-300 px-4 py-3 text-center font-black text-lg text-emerald-900 bg-emerald-100 print:bg-emerald-200">${data.nilai}</td>
+                        <td class="border-x border-slate-300 px-4 py-3 text-center no-print">
+                            <button onclick="window.cetakDetailPeserta('${data.id}')" class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg font-bold shadow-sm hover:bg-blue-700 w-full flex justify-center items-center gap-1.5"><i data-feather="file-text" class="w-3.5 h-3.5"></i> LHE</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            feather.replace();
+        };
+
+        // CETAK DETAIL JAWABAN PESERTA (Lembar Hasil Evaluasi)
+        window.cetakDetailPeserta = (hasilId) => {
+            const dataNilai = window.dataHasil.find(h => h.id === hasilId);
+            if(!dataNilai) return;
+
+            const p = window.dataPeserta.find(x => x.id === dataNilai.pesertaId);
+            const j = window.dataJadwal.find(x => x.id === dataNilai.jadwalId);
+            const namaP = p ? p.nama.toUpperCase() : 'UNKNOWN';
+            const noP = p ? p.noPeserta : '-';
+            const namaJ = j ? j.nama : '-';
+            const detailArr = dataNilai.detail || [];
+
+            let htmlDetail = '';
+            
+            // Grid Soal (3 Kolom per baris agar hemat kertas)
+            let half = Math.ceil(detailArr.length / 2);
+            let rowHtml = '';
+            
+            detailArr.forEach(dtl => {
+                let statusBadge = dtl.status === 1 ? `<span class="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded font-black border border-emerald-400">BENAR</span>` : `<span class="bg-red-200 text-red-800 px-2 py-0.5 rounded font-black border border-red-400">SALAH</span>`;
+                if(dtl.jawabanPeserta === '-') statusBadge = `<span class="bg-slate-200 text-slate-800 px-2 py-0.5 rounded font-black border border-slate-400">KOSONG</span>`;
+
+                rowHtml += `
+                    <tr>
+                        <td class="border border-slate-400 text-center font-black">${dtl.no}</td>
+                        <td class="border border-slate-400 font-bold p-2 text-slate-700 text-[10px]"><div class="line-clamp-2 leading-tight">${dtl.teksSoal}</div></td>
+                        <td class="border border-slate-400 text-center font-black text-blue-700">${dtl.kunciAsli}</td>
+                        <td class="border border-slate-400 text-center font-black">${dtl.jawabanPeserta}</td>
+                        <td class="border border-slate-400 text-center text-[10px]">${statusBadge}</td>
+                    </tr>
+                `;
+            });
+
+            const content = document.getElementById('cetak-lhe-content');
+            content.innerHTML = `
+                <div class="text-center border-b-4 border-slate-800 pb-4 mb-6">
+                    <h2 class="font-black text-2xl uppercase tracking-widest text-slate-900">LEMBAR HASIL EVALUASI (LHE) CBT</h2>
+                    <p class="font-bold uppercase text-slate-700 mt-1">${window.dataLembaga.nama} - ${window.dataLembaga.kecamatan}</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-8 mb-8">
+                    <table class="w-full text-sm font-bold border-collapse">
+                        <tr><td class="py-1 w-32 uppercase text-slate-500">Nomor Peserta</td><td class="py-1">:</td><td class="py-1 font-mono text-lg text-slate-900">${noP}</td></tr>
+                        <tr><td class="py-1 uppercase text-slate-500">Nama Lengkap</td><td class="py-1">:</td><td class="py-1 text-slate-900">${namaP}</td></tr>
+                        <tr><td class="py-1 uppercase text-slate-500">Formasi Jabatan</td><td class="py-1">:</td><td class="py-1 text-slate-900 uppercase">${dataNilai.formasiPeserta}</td></tr>
+                        <tr><td class="py-1 uppercase text-slate-500">Sesi Ujian</td><td class="py-1">:</td><td class="py-1 text-slate-900 uppercase">${namaJ}</td></tr>
+                    </table>
+                    
+                    <div class="bg-slate-100 border-2 border-slate-800 rounded-2xl p-4 flex flex-col justify-center text-center">
+                        <p class="uppercase font-black text-slate-500 tracking-widest mb-2">SKOR AKHIR (SKALA 100)</p>
+                        <h1 class="text-5xl font-black text-slate-900">${dataNilai.nilai}</h1>
+                        <div class="flex justify-center gap-4 mt-3 text-xs font-bold text-slate-700">
+                            <span class="bg-emerald-200 px-2 py-1 rounded border border-emerald-400">Benar: ${dataNilai.benar}</span>
+                            <span class="bg-red-200 px-2 py-1 rounded border border-red-400">Salah: ${dataNilai.salah}</span>
+                            <span class="bg-slate-300 px-2 py-1 rounded border border-slate-400">Kosong: ${dataNilai.kosong || 0}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="font-black text-slate-800 text-sm uppercase bg-slate-200 p-2 border-l-4 border-slate-800 mb-4">Rincian Jawaban Butir Soal</h4>
+                
+                <table class="w-full text-xs text-left border-collapse border border-slate-400 mb-8 print-page-break">
+                    <thead class="bg-slate-800 text-white">
+                        <tr>
+                            <th class="border border-slate-400 p-2 text-center w-8">NO</th>
+                            <th class="border border-slate-400 p-2 text-center">PERTANYAAN SOAL (SEBAGIAN)</th>
+                            <th class="border border-slate-400 p-2 text-center w-12">KUNCI</th>
+                            <th class="border border-slate-400 p-2 text-center w-16">DIJAWAB</th>
+                            <th class="border border-slate-400 p-2 text-center w-20">KETERANGAN</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowHtml}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('modal-detail-jawaban').classList.remove('hidden');
+            // Menandai body agar yang diprint hanya modal ini
+            document.body.classList.add('printing-modal');
+        };
+
+        window.tutupCetakDetail = () => {
+            document.getElementById('modal-detail-jawaban').classList.add('hidden');
+            document.body.classList.remove('printing-modal');
         };
 
     </script>
